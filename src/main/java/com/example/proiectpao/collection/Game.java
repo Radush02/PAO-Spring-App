@@ -1,6 +1,6 @@
-package collection;
+package com.example.proiectpao.collection;
 
-import enums.Results;
+import com.example.proiectpao.enums.Results;
 
 import java.util.Date;
 

@@ -1,4 +1,4 @@
-package collection;
+package com.example.proiectpao.collection;
 
 import java.util.List;
 
