@@ -7,5 +7,4 @@ public class Stats {
     private int deaths;
     private int hits;
     private int headshots;
-
 }

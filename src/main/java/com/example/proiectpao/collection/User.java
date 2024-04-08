@@ -16,18 +16,26 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Getter
 public class User {
-    @Id
-    private String userId;
+    @Id private String userId;
     private Role role;
     private String username;
     private String seed;
     private String hash;
     private String email;
     private String name;
-    public User(){
+
+    public User() {
         this.role = Role.User;
     }
-    public User(String userId, Role role, String username, String seed, String hash, String email, String name){
+
+    public User(
+            String userId,
+            Role role,
+            String username,
+            String seed,
+            String hash,
+            String email,
+            String name) {
         this.userId = userId;
         this.role = role;
         this.username = username;

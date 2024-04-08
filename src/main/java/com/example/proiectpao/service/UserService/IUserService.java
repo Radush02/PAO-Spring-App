@@ -5,8 +5,10 @@ import com.example.proiectpao.dtos.UserDTO;
 import com.example.proiectpao.dtos.UserLoginDTO;
 import com.example.proiectpao.dtos.UserRegisterDTO;
 
-public interface IUserService {
-    User register(UserRegisterDTO userRegisterDTO);
+import java.util.concurrent.CompletableFuture;
 
-    UserDTO login(UserLoginDTO userLoginDTO);
+public interface IUserService {
+    CompletableFuture<User> register(UserRegisterDTO userRegisterDTO);
+
+    CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO);
 }

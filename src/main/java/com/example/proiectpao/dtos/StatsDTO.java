@@ -1,5 +1,8 @@
 package com.example.proiectpao.dtos;
 
+/*
+   DTO-ul contine statisticile complete unui jucator
+*/
 public class StatsDTO {
     private int wins;
     private int losses;

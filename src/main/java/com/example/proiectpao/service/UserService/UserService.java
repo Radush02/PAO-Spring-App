@@ -4,24 +4,33 @@ import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.UserDTO;
 import com.example.proiectpao.dtos.UserLoginDTO;
 import com.example.proiectpao.dtos.UserRegisterDTO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import com.example.proiectpao.repository.UserRepository;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+/*
+ * Clasa UserService implementeaza interfata IUserService si
+ * contine metodele necesare pentru inregistrarea si logarea unui utilizator.
+ */
 @Service
 public class UserService implements IUserService {
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
 
     @Override
-    public User register(UserRegisterDTO userRegisterDTO) {
+    @Async
+    public CompletableFuture<User> register(UserRegisterDTO userRegisterDTO) {
+        if (userRepository.findByUsernameIgnoreCase(userRegisterDTO.getUsername()) != null) {
+            return CompletableFuture.completedFuture(null);
+        }
         User u = new User();
         u.setUserId(UUID.randomUUID().toString().split("-")[0]);
         u.setUsername(userRegisterDTO.getUsername());
@@ -46,14 +55,17 @@ public class UserService implements IUserService {
             String encodedHash = Base64.getEncoder().encodeToString(hashedPassword);
             u.setHash(encodedHash);
         }
-        return userRepository.save(u);
+        return CompletableFuture.completedFuture(userRepository.save(u));
     }
-    public UserDTO login(UserLoginDTO userLoginDTO) {
-        User k = userRepository.findByUsername(userLoginDTO.getUsername());
+    @Override
+    @Async
+    public CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO) {
+        User k = userRepository.findByUsernameIgnoreCase(userLoginDTO.getUsername());
         if (k == null) {
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
         UserDTO u = new UserDTO();
+        u.setUserId(k.getUserId());
         u.setUsername(k.getUsername());
         u.setRole(k.getRole());
         u.setName(k.getName());
@@ -72,9 +84,9 @@ public class UserService implements IUserService {
             byte[] hashedPassword = md.digest(password.getBytes(StandardCharsets.UTF_8));
             String encodedHash = Base64.getEncoder().encodeToString(hashedPassword);
             if (encodedHash.equals(k.getHash())) {
-                return u;
+                return CompletableFuture.completedFuture(u);
             }
         }
-        return null;
+        return CompletableFuture.completedFuture(null);
     }
 }
