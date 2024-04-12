@@ -3,6 +3,8 @@ package com.example.proiectpao.controller;
 import com.example.proiectpao.dtos.ChatDTO;
 import com.example.proiectpao.service.ChatService.IChatService;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,8 +32,9 @@ public class ChatController {
     @GetMapping("/receive/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<String>> receive(
-            @RequestBody String senderId, @PathVariable String username) {
-        List<String> chatDTOs = chatService.receive(senderId, username);
-        return new ResponseEntity<>(chatDTOs, HttpStatus.OK);
+            @RequestBody String senderId, @PathVariable String username)
+            throws ExecutionException, InterruptedException {
+        CompletableFuture<List<String>> chatDTOs = chatService.receive(senderId, username);
+        return new ResponseEntity<>(chatDTOs.get(), HttpStatus.OK);
     }
 }

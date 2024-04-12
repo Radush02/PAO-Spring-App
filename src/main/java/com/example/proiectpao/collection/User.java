@@ -2,10 +2,7 @@ package com.example.proiectpao.collection;
 
 import com.example.proiectpao.enums.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -15,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Setter
 @Getter
+@AllArgsConstructor
 public class User {
     @Id private String userId;
     private Role role;
@@ -23,25 +21,9 @@ public class User {
     private String hash;
     private String email;
     private String name;
+    private Stats stats;
 
     public User() {
         this.role = Role.User;
-    }
-
-    public User(
-            String userId,
-            Role role,
-            String username,
-            String seed,
-            String hash,
-            String email,
-            String name) {
-        this.userId = userId;
-        this.role = role;
-        this.username = username;
-        this.seed = seed;
-        this.hash = hash;
-        this.email = email;
-        this.name = name;
     }
 }

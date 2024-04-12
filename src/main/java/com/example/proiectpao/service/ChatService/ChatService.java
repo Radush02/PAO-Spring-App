@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -25,8 +26,7 @@ public class ChatService implements IChatService {
         c.setMessage(chat.getMessage());
         c.setSenderId(chat.getSenderId());
         c.setReceiverId(userRepository.findByUsernameIgnoreCase(receiver).getUserId());
-        if(Objects.equals(c.getSenderId(), c.getReceiverId()))
-            return;
+        if (Objects.equals(c.getSenderId(), c.getReceiverId())) return;
         chatRepository.save(c);
     }
 
@@ -49,13 +49,12 @@ public class ChatService implements IChatService {
     //    }
     @Override
     @Async
-    public List<String> receive(String senderId, String username) {
+    public CompletableFuture<List<String>> receive(String senderId, String username) {
         List<String> c = new ArrayList<>();
         List<Chat> chats =
                 chatRepository.findAllBySenderIdAndReceiverId(
                         senderId, userRepository.findByUsernameIgnoreCase(username).getUserId());
-        for (Chat chat : chats)
-            c.add(chat.getMessage());
-        return c;
+        for (Chat chat : chats) c.add(chat.getMessage());
+        return CompletableFuture.completedFuture(c);
     }
 }
