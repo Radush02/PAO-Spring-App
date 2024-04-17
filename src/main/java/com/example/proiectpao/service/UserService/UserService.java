@@ -40,7 +40,12 @@ public class UserService implements IUserService {
         this.s3Service = s3Service;
     }
 
-    public UserDTO configureDTO(User k) {
+    /**
+     * O metoda ce converteste modelul user in DTO-ul specific userului.
+     * @param k (userul ce trebuie convertit)
+     * @return DTO-ul userului
+     */
+    private UserDTO configureDTO(User k) {
         UserDTO u = new UserDTO();
         u.setUserId(k.getUserId());
         u.setUsername(k.getUsername());
@@ -52,7 +57,7 @@ public class UserService implements IUserService {
         if (w.getWins() + w.getLosses() != 0)
             wr = (double) w.getWins() / (w.getWins() + w.getLosses());
         if (k.getStats().getDeaths() != 0) kdr = (double) w.getKills() / w.getDeaths();
-        if (k.getStats().getHits() != 0) hsp = (double) w.getHeadshots() / w.getHits();
+        if (k.getStats().getHits() != 0) hsp = (double) w.getHeadshots() / w.getKills();
 
         StatsDTO stats =
                 StatsDTO.builder()
@@ -70,6 +75,12 @@ public class UserService implements IUserService {
         return u;
     }
 
+
+    /**
+     * Metoda pentru inregistrarea unui utilizator.
+     * @param userRegisterDTO (DTO-ul ce contine datele necesare pentru inregistrare)
+     * @return Utilizatorul inregistrat.
+     */
     @Override
     @Async
     public CompletableFuture<User> register(UserRegisterDTO userRegisterDTO) {
@@ -103,9 +114,14 @@ public class UserService implements IUserService {
         return CompletableFuture.completedFuture(userRepository.save(u));
     }
 
+    /**
+     * Metoda login verifica daca un utilizator exista in baza de date si daca parola este corecta.
+     * @param userLoginDTO (DTO-ul ce contine datele necesare pentru logare)
+     * @return Utilizatorul logat.
+     */
     @Override
     @Async
-    public CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO) throws IOException {
+    public CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO){
         User k = userRepository.findByUsernameIgnoreCase(userLoginDTO.getUsername());
         if (k == null) {
             return CompletableFuture.completedFuture(null);
@@ -149,6 +165,11 @@ public class UserService implements IUserService {
         return CompletableFuture.completedFuture(null);
     }
 
+    /**
+     * Metoda displayUser afiseaza un utilizator.
+     * @param username numele utilizatorului
+     * @return Utilizatorul afisat.
+     */
     @Override
     @Async
     public CompletableFuture<UserDTO> displayUser(String username) {
@@ -158,7 +179,11 @@ public class UserService implements IUserService {
         }
         return CompletableFuture.completedFuture(configureDTO(k));
     }
-
+    /**
+    * Metoda assignRole atribuie un rol unui utilizator.
+    * @param userRoleDTO (DTO-ul ce contine username-ul si rolul atribuit)
+    * @return Utilizatorul cu rolul atribuit.
+     */
     @Override
     @Async
     public CompletableFuture<UserDTO> assignRole(AssignRoleDTO userRoleDTO) {
@@ -176,6 +201,12 @@ public class UserService implements IUserService {
         return CompletableFuture.completedFuture(configureDTO(k));
     }
 
+    /**
+    Metoda downloadUser descarca un fisier JSON cu informatiile despre un utilizator.
+    @param username numele utilizatorului
+    @return - Fisierul JSON.
+    @see <a href=" https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f"></a>
+     */
     @Override
     @Async
     public CompletableFuture<Resource> downloadUser(String username) throws IOException {
@@ -190,10 +221,6 @@ public class UserService implements IUserService {
         try (FileOutputStream fos = new FileOutputStream(temp)) {
             fos.write(userJson.getBytes());
         }
-        /*
-        Preluat si adaptat din:
-        https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f
-         */
         FileInputStream input = new FileInputStream(temp);
         MultipartFile multipartFile =
                 new MockMultipartFile(
@@ -205,6 +232,12 @@ public class UserService implements IUserService {
                         s3Service.getFile(k.getUserId() + ".json").getObjectContent()));
     }
 
+    /**
+     * Metoda uploadStats incarca statisticile unui utilizator.
+     * @param user numele utilizatorului
+     * @param file fisierul JSON cu statisticile
+     * @return true daca s-a incarcat cu succes, false altfel.
+     */
     @Override
     @Async
     public CompletableFuture<Boolean> uploadStats(String user, MultipartFile file) {

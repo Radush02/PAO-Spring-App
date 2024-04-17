@@ -21,11 +21,21 @@ public class S3Service implements IS3Service {
         this.s3client = s3client;
     }
 
+    /**
+     * Incarca un fisier in S3
+     * @param keyName - numele fisierului
+     * @param file - fisierul incarcat
+     */
     public void uploadFile(String keyName, MultipartFile file) throws IOException {
         var putObjectResult = s3client.putObject(bucketName, keyName, file.getInputStream(), null);
         log.info(putObjectResult.getMetadata());
     }
 
+    /**
+     * Descarca un fisier din S3
+     * @param keyName - numele fisierului
+     * @return obiectul descarcat
+     */
     public S3Object getFile(String keyName) {
         return s3client.getObject(bucketName, keyName);
     }
