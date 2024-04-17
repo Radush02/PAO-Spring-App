@@ -10,9 +10,11 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/user")
@@ -51,5 +53,28 @@ public class UserController {
             return new ResponseEntity<>("User inexistent sau rol gresit", HttpStatus.UNAUTHORIZED);
         }
         return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    @GetMapping("/downloadUser")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Resource> downloadUser(@RequestBody UserLoginDTO userLoginDTO)
+            throws IOException, ExecutionException, InterruptedException {
+        CompletableFuture<Resource> user = userService.downloadUser(userLoginDTO.getUsername());
+        if (user == null) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(user.get(), HttpStatus.OK);
+    }
+
+    @PostMapping("/uploadStats/{user}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Boolean> uploadStats(
+            @RequestParam MultipartFile file, @PathVariable String user)
+            throws ExecutionException, InterruptedException {
+        CompletableFuture<Boolean> user1 = userService.uploadStats(user, file);
+        if (user1 == null) {
+            return new ResponseEntity<>(false, HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(user1.get(), HttpStatus.OK);
     }
 }

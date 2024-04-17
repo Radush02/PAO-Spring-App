@@ -7,8 +7,6 @@ import com.example.proiectpao.dtos.UserLoginDTO;
 import com.example.proiectpao.dtos.UserRegisterDTO;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import org.springframework.core.io.Resource;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface IUserService {
     CompletableFuture<User> register(UserRegisterDTO userRegisterDTO);
@@ -19,7 +17,5 @@ public interface IUserService {
 
     CompletableFuture<UserDTO> assignRole(AssignRoleDTO userRoleDTO);
 
-    CompletableFuture<Resource> downloadUser(String username) throws IOException;
-
-    public CompletableFuture<Boolean> uploadStats(String user, MultipartFile file);
+    CompletableFuture<String> downloadUser(String username) throws IOException;
 }
