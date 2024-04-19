@@ -2,10 +2,10 @@ package com.example.proiectpao.collection;
 
 import com.example.proiectpao.enums.Results;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Date;
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
 @Data
 @Builder
 @Document(collection = "games")
@@ -20,5 +20,4 @@ public class Game {
     private Results result;
     private String score;
     private Date date;
-
 }

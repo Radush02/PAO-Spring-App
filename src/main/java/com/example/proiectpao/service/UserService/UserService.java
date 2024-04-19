@@ -3,9 +3,14 @@ package com.example.proiectpao.service.UserService;
 import static com.example.proiectpao.enums.Role.Admin;
 import static com.example.proiectpao.enums.Role.Moderator;
 
+import com.example.proiectpao.collection.Punish;
 import com.example.proiectpao.collection.Stats;
 import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.*;
+import com.example.proiectpao.enums.Penalties;
+import com.example.proiectpao.exceptions.AlreadyExistsException;
+import com.example.proiectpao.exceptions.NonExistentException;
+import com.example.proiectpao.repository.PunishRepository;
 import com.example.proiectpao.repository.UserRepository;
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.google.gson.Gson;
@@ -15,9 +20,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import javax.xml.*;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -26,18 +32,17 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-/*
- * Clasa UserService implementeaza interfata IUserService si
- * contine metodele necesare pentru inregistrarea si logarea unui utilizator.
- */
 @Service
 public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final S3Service s3Service;
+    private final PunishRepository punishRepository;
 
-    public UserService(UserRepository userRepository, S3Service s3Service) {
+    public UserService(
+            UserRepository userRepository, S3Service s3Service, PunishRepository punishRepository) {
         this.userRepository = userRepository;
         this.s3Service = s3Service;
+        this.punishRepository = punishRepository;
     }
 
     /**
@@ -75,7 +80,6 @@ public class UserService implements IUserService {
         return u;
     }
 
-
     /**
      * Metoda pentru inregistrarea unui utilizator.
      * @param userRegisterDTO (DTO-ul ce contine datele necesare pentru inregistrare)
@@ -85,7 +89,7 @@ public class UserService implements IUserService {
     @Async
     public CompletableFuture<User> register(UserRegisterDTO userRegisterDTO) {
         if (userRepository.findByUsernameIgnoreCase(userRegisterDTO.getUsername()) != null) {
-            return CompletableFuture.completedFuture(null);
+            throw new AlreadyExistsException("Exista deja un user cu acest username");
         }
         User u = new User();
         u.setUserId(UUID.randomUUID().toString().split("-")[0]);
@@ -121,10 +125,19 @@ public class UserService implements IUserService {
      */
     @Override
     @Async
-    public CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO){
+    public CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO) {
         User k = userRepository.findByUsernameIgnoreCase(userLoginDTO.getUsername());
         if (k == null) {
-            return CompletableFuture.completedFuture(null);
+            throw new NonExistentException("Userul nu exista sau parola incorecta.");
+        }
+        List<Punish> banLog =
+                punishRepository.findAllByUserIDAndSanction(k.getUserId(), Penalties.Ban);
+        System.out.println(banLog.size());
+        for (Punish p : banLog) {
+            System.out.println(p.getExpiryDate() + " " + new Date());
+            if (p.getExpiryDate().after(new Date())) {
+                throw new NonExistentException("Userul este banat.");
+            }
         }
         UserDTO u = configureDTO(k);
         String password = userLoginDTO.getPassword();
@@ -162,7 +175,7 @@ public class UserService implements IUserService {
                 return CompletableFuture.completedFuture(u);
             }
         }
-        return CompletableFuture.completedFuture(null);
+        throw new NonExistentException("Userul nu exista sau parola incorecta.");
     }
 
     /**
@@ -175,14 +188,15 @@ public class UserService implements IUserService {
     public CompletableFuture<UserDTO> displayUser(String username) {
         User k = userRepository.findByUsernameIgnoreCase(username);
         if (k == null) {
-            return CompletableFuture.completedFuture(null);
+            throw new NonExistentException("Userul nu exista.");
         }
         return CompletableFuture.completedFuture(configureDTO(k));
     }
+
     /**
-    * Metoda assignRole atribuie un rol unui utilizator.
-    * @param userRoleDTO (DTO-ul ce contine username-ul si rolul atribuit)
-    * @return Utilizatorul cu rolul atribuit.
+     * Metoda assignRole atribuie un rol unui utilizator.
+     * @param userRoleDTO (DTO-ul ce contine username-ul si rolul atribuit)
+     * @return Utilizatorul cu rolul atribuit.
      */
     @Override
     @Async
@@ -190,29 +204,32 @@ public class UserService implements IUserService {
         User k = userRepository.findByUsernameIgnoreCase(userRoleDTO.getUsername());
         User adm = userRepository.findById(userRoleDTO.getPossibleAdminID()).orElse(null);
         if (k == null || adm == null) {
-            return CompletableFuture.completedFuture(null);
+            throw new NonExistentException("Userul nu exista.");
+        }
+        if (adm.getRole() != Admin) {
+            throw new NonExistentException("Adminul nu exista.");
         }
         try {
             k.setRole(userRoleDTO.getRole());
         } catch (IllegalArgumentException e) {
-            return CompletableFuture.completedFuture(null);
+            throw new NonExistentException("Rolul nu exista.");
         }
         userRepository.save(k);
         return CompletableFuture.completedFuture(configureDTO(k));
     }
 
     /**
-    Metoda downloadUser descarca un fisier JSON cu informatiile despre un utilizator.
-    @param username numele utilizatorului
-    @return - Fisierul JSON.
-    @see <a href=" https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f"></a>
+     * Metoda downloadUser returneaza un fisier JSON cu informatiile despre un utilizator.
+     * @param username numele utilizatorului
+     * @return - Fisierul JSON.
+     * @see <a href=" https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f"></a>
      */
     @Override
     @Async
     public CompletableFuture<Resource> downloadUser(String username) throws IOException {
         User k = userRepository.findByUsernameIgnoreCase(username);
         if (k == null) {
-            return CompletableFuture.completedFuture(null);
+            throw new NonExistentException("Userul nu exista.");
         }
         UserDTO u = configureDTO(k);
         String userJson = new Gson().toJson(u);
@@ -243,7 +260,7 @@ public class UserService implements IUserService {
     public CompletableFuture<Boolean> uploadStats(String user, MultipartFile file) {
         User k = userRepository.findByUsernameIgnoreCase(user);
         if (k == null) {
-            return CompletableFuture.completedFuture(false);
+            throw new NonExistentException("Userul nu exista.");
         }
         try {
             InputStream is = file.getInputStream();
@@ -260,6 +277,7 @@ public class UserService implements IUserService {
             userRepository.save(k);
         } catch (IOException e) {
             e.printStackTrace();
+            // Nu ar trebui sa se ajunga aici oricum
             return CompletableFuture.completedFuture(false);
         }
         return CompletableFuture.completedFuture(true);

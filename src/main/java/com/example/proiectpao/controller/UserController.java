@@ -5,10 +5,10 @@ import com.example.proiectpao.dtos.AssignRoleDTO;
 import com.example.proiectpao.dtos.UserDTO;
 import com.example.proiectpao.dtos.UserLoginDTO;
 import com.example.proiectpao.dtos.UserRegisterDTO;
+import com.example.proiectpao.exceptions.AlreadyExistsException;
+import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.UserService.IUserService;
-import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -25,56 +25,66 @@ public class UserController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> register(@RequestBody UserRegisterDTO userRegisterDTO) {
-        CompletableFuture<User> u = userService.register(userRegisterDTO);
-        if (u == null) {
-            return new ResponseEntity<>(
-                    "Exista deja un utilizator cu acel nume", HttpStatus.CONFLICT);
+        try {
+            CompletableFuture<User> u = userService.register(userRegisterDTO);
+            return new ResponseEntity<>(u, HttpStatus.OK);
+        } catch (AlreadyExistsException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(u, HttpStatus.OK);
     }
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> login(@RequestBody UserLoginDTO userLoginDTO)
-            throws ExecutionException, InterruptedException, IOException {
-        CompletableFuture<UserDTO> user = userService.login(userLoginDTO);
-        if (user == null) {
-            return new ResponseEntity<>(
-                    "User inexistent sau parola gresita", HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<?> login(@RequestBody UserLoginDTO userLoginDTO) {
+        try {
+            CompletableFuture<UserDTO> user = userService.login(userLoginDTO);
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(user.get(), HttpStatus.OK);
     }
 
     @PostMapping("/assignRole")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> assignRole(@RequestBody AssignRoleDTO userRoleDTO) {
-        CompletableFuture<UserDTO> user = userService.assignRole(userRoleDTO);
-        if (user == null) {
-            return new ResponseEntity<>("User inexistent sau rol gresit", HttpStatus.UNAUTHORIZED);
+        try {
+            CompletableFuture<UserDTO> user = userService.assignRole(userRoleDTO);
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @GetMapping("/downloadUser")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Resource> downloadUser(@RequestBody UserLoginDTO userLoginDTO)
-            throws IOException, ExecutionException, InterruptedException {
-        CompletableFuture<Resource> user = userService.downloadUser(userLoginDTO.getUsername());
-        if (user == null) {
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<Resource> downloadUser(@RequestBody UserLoginDTO userLoginDTO) {
+        try {
+            CompletableFuture<Resource> user = userService.downloadUser(userLoginDTO.getUsername());
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(user.get(), HttpStatus.OK);
     }
 
     @PostMapping("/uploadStats/{user}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Boolean> uploadStats(
-            @RequestParam MultipartFile file, @PathVariable String user)
-            throws ExecutionException, InterruptedException {
-        CompletableFuture<Boolean> user1 = userService.uploadStats(user, file);
-        if (user1 == null) {
-            return new ResponseEntity<>(false, HttpStatus.UNAUTHORIZED);
+            @RequestParam MultipartFile file, @PathVariable String user) {
+        try {
+            CompletableFuture<Boolean> userStats = userService.uploadStats(user, file);
+            return new ResponseEntity<>(userStats.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(user1.get(), HttpStatus.OK);
     }
 }

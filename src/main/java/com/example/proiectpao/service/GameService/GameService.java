@@ -5,14 +5,13 @@ import com.example.proiectpao.collection.User;
 import com.example.proiectpao.enums.Results;
 import com.example.proiectpao.repository.GameRepository;
 import com.example.proiectpao.repository.UserRepository;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-
 @Service
-public class GameService implements IGameService{
+public class GameService implements IGameService {
     private final GameRepository gameRepository;
     private final UserRepository userRepository;
 
@@ -20,6 +19,7 @@ public class GameService implements IGameService{
         this.gameRepository = gameRepository;
         this.userRepository = userRepository;
     }
+
     /**
      * Returneaza rezultatul unui meci.<br>
      * Game logic: <br>
@@ -41,64 +41,64 @@ public class GameService implements IGameService{
      *     </ul>
      * </ul>
      * <br>
-     @param Player1 Numele jucatorului din echipa A
-     @param Player2 Numele jucatorului din echipa B
-     @return Rezultatul meciului
+     * @param Player1 Numele jucatorului din echipa A
+     * @param Player2 Numele jucatorului din echipa B
+     * @return Rezultatul meciului
      */
     @Override
     @Async
     public CompletableFuture<Results> attack(String Player1, String Player2) {
         User attacker = userRepository.findByUsernameIgnoreCase(Player1);
         User defender = userRepository.findByUsernameIgnoreCase(Player2);
-        if(attacker==null || defender==null)
-            return CompletableFuture.completedFuture(null);
+        if (attacker == null || defender == null) return CompletableFuture.completedFuture(null);
         Game game = new Game();
         game.setUserId(attacker.getUserId());
         game.setOpponentId(defender.getUserId());
         Random r = new Random();
-        int no_rounds = 24,attacker_score=0,defender_score=0;
-        while(no_rounds>0){
-            int attacker_roll = r.nextInt(6)+1;
-            int defender_roll = r.nextInt(6)+1;
-            if(attacker_roll>defender_roll){
-                attacker_score = attackHelper(attacker, defender, attacker_score, attacker_roll, defender_roll);
-            }
-            else if(attacker_roll<defender_roll){
-                defender_score = attackHelper(defender, attacker, defender_score, defender_roll, attacker_roll);
-            }
-            else
-                continue;
+        int no_rounds = 24, attacker_score = 0, defender_score = 0;
+        while (no_rounds > 0) {
+            int attacker_roll = r.nextInt(6) + 1;
+            int defender_roll = r.nextInt(6) + 1;
+            if (attacker_roll > defender_roll) {
+                attacker_score =
+                        attackHelper(
+                                attacker, defender, attacker_score, attacker_roll, defender_roll);
+            } else if (attacker_roll < defender_roll) {
+                defender_score =
+                        attackHelper(
+                                defender, attacker, defender_score, defender_roll, attacker_roll);
+            } else continue;
             no_rounds--;
-            if(no_rounds==0 && attacker_score==defender_score)
-                no_rounds+=6;
-            if(attacker_score>12 || defender_score>12)
-                break;
+            if (no_rounds == 0 && attacker_score == defender_score) no_rounds += 6;
+            if (attacker_score > 12 || defender_score > 12) break;
         }
-        if(attacker_score>defender_score){
-            game.setScore(attacker_score+"-"+defender_score);
+        if (attacker_score > defender_score) {
+            game.setScore(attacker_score + "-" + defender_score);
             attacker.addWin();
             defender.addLoss();
             game.setResult(Results.Win);
-        }
-        else{
-            game.setScore(attacker_score+"-"+defender_score);
+        } else {
+            game.setScore(attacker_score + "-" + defender_score);
             attacker.addLoss();
             defender.addWin();
             game.setResult(Results.Loss);
         }
-        attacker.getGames().add(game);
-        defender.getGames().add(game);
         userRepository.save(attacker);
         userRepository.save(defender);
         gameRepository.save(game);
         return CompletableFuture.completedFuture(game.getResult());
     }
 
-    private int attackHelper(User attacker, User defender, int attacker_score, int attacker_roll, int defender_roll) {
+    private int attackHelper(
+            User attacker,
+            User defender,
+            int attacker_score,
+            int attacker_roll,
+            int defender_roll) {
         attacker_score++;
         attacker.addKill();
         defender.addDeath();
-        switch (attacker_roll-defender_roll){
+        switch (attacker_roll - defender_roll) {
             case 1 -> {
                 attacker.addHits(4);
                 attacker.addHits(2);

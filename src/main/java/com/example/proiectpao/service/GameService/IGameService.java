@@ -1,7 +1,6 @@
 package com.example.proiectpao.service.GameService;
 
 import com.example.proiectpao.enums.Results;
-
 import java.util.concurrent.CompletableFuture;
 
 public interface IGameService {
@@ -23,9 +22,9 @@ public interface IGameService {
      *     </ul>
      * </ul>
      * <br>
-     @param Player1 Numele jucatorului din echipa A
-     @param Player2 Numele jucatorului din echipa B
-     @return Rezultatul meciului
+     * @param Player1 Numele jucatorului din echipa A
+     * @param Player2 Numele jucatorului din echipa B
+     * @return Rezultatul meciului
      */
-    CompletableFuture<Results> attack(String Player1,String Player2);
+    CompletableFuture<Results> attack(String Player1, String Player2);
 }

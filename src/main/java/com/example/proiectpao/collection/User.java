@@ -2,11 +2,10 @@ package com.example.proiectpao.collection;
 
 import com.example.proiectpao.enums.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.List;
 
 @Data
 @Builder
@@ -24,28 +23,33 @@ public class User {
     private String email;
     private String name;
     private Stats stats;
-    private List<Game> games;
+    private List<String> gameIDs;
 
     public User() {
         this.role = Role.User;
     }
 
     public void addHits(int i) {
-        stats.setHits(stats.getHits()+i);
+        stats.setHits(stats.getHits() + i);
     }
+
     public void addHeadshot() {
-        stats.setHeadshots(stats.getHeadshots()+1);
+        stats.setHeadshots(stats.getHeadshots() + 1);
     }
+
     public void addDeath() {
-        stats.setDeaths(stats.getDeaths()+1);
+        stats.setDeaths(stats.getDeaths() + 1);
     }
+
     public void addKill() {
-        stats.setKills(stats.getKills()+1);
+        stats.setKills(stats.getKills() + 1);
     }
-    public void addWin(){
-        stats.setWins(stats.getWins()+1);
+
+    public void addWin() {
+        stats.setWins(stats.getWins() + 1);
     }
-    public void addLoss(){
-        stats.setLosses(stats.getLosses()+1);
+
+    public void addLoss() {
+        stats.setLosses(stats.getLosses() + 1);
     }
 }
