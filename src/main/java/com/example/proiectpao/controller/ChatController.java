@@ -17,16 +17,17 @@ public class ChatController {
 
     @PostMapping("/send/{receiver}")
     @ResponseStatus(HttpStatus.CREATED)
-    public void save(@RequestBody ChatDTO chatDTO, @PathVariable String receiver) {
+    public ResponseEntity<Boolean> save(
+            @RequestBody ChatDTO chatDTO, @PathVariable String receiver) {
         chatService.send(chatDTO, receiver);
+        return new ResponseEntity<>(true, HttpStatus.CREATED);
     }
 
     @GetMapping("/receive")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<ChatDTO>> receive() {
-        System.out.println("ChatController.receive");
-        List<ChatDTO> chatDTOs = chatService.receive();
-        return new ResponseEntity<>(chatDTOs, HttpStatus.OK);
+    public ResponseEntity<List<ChatDTO>> receive() throws ExecutionException, InterruptedException {
+        CompletableFuture<List<ChatDTO>> chatDTOs = chatService.receive();
+        return new ResponseEntity<>(chatDTOs.get(), HttpStatus.OK);
     }
 
     @GetMapping("/receive/{username}")

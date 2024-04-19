@@ -31,8 +31,8 @@ public class ChatService implements IChatService {
     }
 
     @Override
-    public List<ChatDTO> receive() {
-        return new ArrayList<>();
+    public CompletableFuture<List<ChatDTO>> receive() {
+        return CompletableFuture.completedFuture(new ArrayList<>());
     }
 
     //    public List<ChatDTO> receive() {

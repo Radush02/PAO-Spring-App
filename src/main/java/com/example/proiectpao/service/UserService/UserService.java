@@ -89,6 +89,7 @@ public class UserService implements IUserService {
     @Async
     public CompletableFuture<User> register(UserRegisterDTO userRegisterDTO) {
         if (userRepository.findByUsernameIgnoreCase(userRegisterDTO.getUsername()) != null) {
+            System.out.println("aaa");
             throw new AlreadyExistsException("Exista deja un user cu acest username");
         }
         User u = new User();
@@ -140,7 +141,9 @@ public class UserService implements IUserService {
             }
         }
         UserDTO u = configureDTO(k);
+
         String password = userLoginDTO.getPassword();
+        System.out.println(password);
         byte[] salt = Base64.getDecoder().decode(k.getSeed());
         MessageDigest md = null;
         try {

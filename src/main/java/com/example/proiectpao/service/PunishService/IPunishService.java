@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.scheduling.annotation.Async;
 
 public interface IPunishService {
+    @Async
     CompletableFuture<?> mute(PunishDTO mute);
 
     @Async

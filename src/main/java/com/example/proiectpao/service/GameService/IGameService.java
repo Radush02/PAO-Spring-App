@@ -2,6 +2,7 @@ package com.example.proiectpao.service.GameService;
 
 import com.example.proiectpao.enums.Results;
 import java.util.concurrent.CompletableFuture;
+import org.springframework.scheduling.annotation.Async;
 
 public interface IGameService {
     /**
@@ -26,5 +27,6 @@ public interface IGameService {
      * @param Player2 Numele jucatorului din echipa B
      * @return Rezultatul meciului
      */
+    @Async
     CompletableFuture<Results> attack(String Player1, String Player2);
 }

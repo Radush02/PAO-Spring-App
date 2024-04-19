@@ -7,6 +7,7 @@ import com.example.proiectpao.dtos.UserLoginDTO;
 import com.example.proiectpao.dtos.UserRegisterDTO;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
+import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.service.UserService.IUserService;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,8 @@ public class UserController {
     public ResponseEntity<?> register(@RequestBody UserRegisterDTO userRegisterDTO) {
         try {
             CompletableFuture<User> u = userService.register(userRegisterDTO);
-            return new ResponseEntity<>(u, HttpStatus.OK);
-        } catch (AlreadyExistsException e) {
+            return new ResponseEntity<>(u.get(), HttpStatus.OK);
+        } catch (AlreadyExistsException | NonExistentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -41,7 +42,7 @@ public class UserController {
         try {
             CompletableFuture<UserDTO> user = userService.login(userLoginDTO);
             return new ResponseEntity<>(user.get(), HttpStatus.OK);
-        } catch (NonExistentException e) {
+        } catch (NonExistentException | UnauthorizedActionException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -62,7 +63,7 @@ public class UserController {
     }
 
     @GetMapping("/downloadUser")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Resource> downloadUser(@RequestBody UserLoginDTO userLoginDTO) {
         try {
             CompletableFuture<Resource> user = userService.downloadUser(userLoginDTO.getUsername());

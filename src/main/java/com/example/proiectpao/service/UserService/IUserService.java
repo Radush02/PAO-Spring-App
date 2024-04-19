@@ -8,6 +8,7 @@ import com.example.proiectpao.dtos.UserRegisterDTO;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface IUserService {
@@ -16,6 +17,7 @@ public interface IUserService {
      * @param - userRegisterDTO (DTO-ul ce contine datele necesare pentru inregistrare)
      * @return - Utilizatorul inregistrat.
      */
+    @Async
     CompletableFuture<User> register(UserRegisterDTO userRegisterDTO);
 
     /**
@@ -23,6 +25,7 @@ public interface IUserService {
      * @param userLoginDTO (DTO-ul ce contine datele necesare pentru logare)
      * @return Utilizatorul logat.
      */
+    @Async
     CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO) throws IOException;
 
     /**
@@ -30,6 +33,7 @@ public interface IUserService {
      * @param username numele utilizatorului
      * @return Utilizatorul afisat.
      */
+    @Async
     CompletableFuture<UserDTO> displayUser(String username);
 
     /**
@@ -37,6 +41,7 @@ public interface IUserService {
      * @param userRoleDTO (DTO-ul ce contine username-ul si rolul atribuit)
      * @return Utilizatorul cu rolul atribuit.
      */
+    @Async
     CompletableFuture<UserDTO> assignRole(AssignRoleDTO userRoleDTO);
 
     /**
@@ -45,6 +50,7 @@ public interface IUserService {
      * @return  Fisierul JSON.
      * @see <a href=" https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f"></a>
      */
+    @Async
     CompletableFuture<Resource> downloadUser(String username) throws IOException;
 
     /**
@@ -53,5 +59,6 @@ public interface IUserService {
      * @param file fisierul JSON cu statisticile
      * @return true daca s-a incarcat cu succes, false altfel.
      */
-    public CompletableFuture<Boolean> uploadStats(String user, MultipartFile file);
+    @Async
+    CompletableFuture<Boolean> uploadStats(String user, MultipartFile file);
 }
