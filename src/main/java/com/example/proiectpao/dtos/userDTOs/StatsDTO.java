@@ -1,4 +1,4 @@
-package com.example.proiectpao.dtos;
+package com.example.proiectpao.dtos.userDTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

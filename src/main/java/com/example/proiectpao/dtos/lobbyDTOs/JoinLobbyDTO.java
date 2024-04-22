@@ -1,4 +1,4 @@
-package com.example.proiectpao.dtos;
+package com.example.proiectpao.dtos.lobbyDTOs;
 
 import lombok.Getter;
 

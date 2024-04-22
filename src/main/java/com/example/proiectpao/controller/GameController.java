@@ -1,6 +1,6 @@
 package com.example.proiectpao.controller;
 
-import com.example.proiectpao.dtos.UserLoginDTO;
+import com.example.proiectpao.dtos.userDTOs.UserLoginDTO;
 import com.example.proiectpao.enums.Results;
 import com.example.proiectpao.service.GameService.IGameService;
 import java.util.concurrent.CompletableFuture;
@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/game")
+@RequestMapping("/api/game")
 public class GameController {
     @Autowired private final IGameService gameService;
 

@@ -16,8 +16,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @AllArgsConstructor
 public class Lobby {
-    @Id
-    private User lobbyLeader;
+    @Id private User lobbyLeader;
     private String lobbyName;
     private List<User> players;
 }

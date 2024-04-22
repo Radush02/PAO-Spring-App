@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Log4j2
 public class S3Service implements IS3Service {
 
-    private AmazonS3 s3client;
+    private final AmazonS3 s3client;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;

@@ -29,4 +29,7 @@ public interface IGameService {
      */
     @Async
     CompletableFuture<Results> attack(String Player1, String Player2);
+
+    @Async
+    CompletableFuture<?> attackTeam(String attackerCaptain, String defenderCaptain);
 }

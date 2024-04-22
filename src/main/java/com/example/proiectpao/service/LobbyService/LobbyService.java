@@ -2,9 +2,9 @@ package com.example.proiectpao.service.LobbyService;
 
 import com.example.proiectpao.collection.Lobby;
 import com.example.proiectpao.collection.User;
-import com.example.proiectpao.dtos.CreateLobbyDTO;
-import com.example.proiectpao.dtos.JoinLobbyDTO;
-import com.example.proiectpao.dtos.KickLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.CreateLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.JoinLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.KickLobbyDTO;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
@@ -38,7 +38,7 @@ public class LobbyService implements ILobbyService {
             throw new AlreadyExistsException("Userul are deja un lobby creat.");
         }
         List<Lobby> lobbies = lobbyRepository.findAll();
-        for(Lobby lobby : lobbies) {
+        for (Lobby lobby : lobbies) {
             if (lobby.getPlayers().contains(u)) {
                 throw new AlreadyExistsException("Userul este deja in alt lobby.");
             }
@@ -66,7 +66,7 @@ public class LobbyService implements ILobbyService {
             throw new NonExistentException("Userul nu are lobby creat.");
         }
         List<Lobby> lobbies = lobbyRepository.findAll();
-        for(Lobby lobby : lobbies) {
+        for (Lobby lobby : lobbies) {
             if (lobby.getPlayers().contains(invited)) {
                 throw new AlreadyExistsException("Userul este deja in alt lobby.");
             }
@@ -94,7 +94,7 @@ public class LobbyService implements ILobbyService {
             throw new NonExistentException("Userul nu are lobby creat.");
         }
         boolean inLobby = false;
-        for(User u : l.getPlayers()) {
+        for (User u : l.getPlayers()) {
             if (u.equals(invited)) {
                 inLobby = true;
                 break;

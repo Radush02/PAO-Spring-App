@@ -1,10 +1,10 @@
 package com.example.proiectpao.service.UserService;
 
 import com.example.proiectpao.collection.User;
-import com.example.proiectpao.dtos.AssignRoleDTO;
-import com.example.proiectpao.dtos.UserDTO;
-import com.example.proiectpao.dtos.UserLoginDTO;
-import com.example.proiectpao.dtos.UserRegisterDTO;
+import com.example.proiectpao.dtos.userDTOs.AssignRoleDTO;
+import com.example.proiectpao.dtos.userDTOs.UserDTO;
+import com.example.proiectpao.dtos.userDTOs.UserLoginDTO;
+import com.example.proiectpao.dtos.userDTOs.UserRegisterDTO;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.core.io.Resource;

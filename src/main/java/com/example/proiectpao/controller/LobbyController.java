@@ -1,9 +1,9 @@
 package com.example.proiectpao.controller;
 
 import com.example.proiectpao.collection.Lobby;
-import com.example.proiectpao.dtos.CreateLobbyDTO;
-import com.example.proiectpao.dtos.JoinLobbyDTO;
-import com.example.proiectpao.dtos.KickLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.CreateLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.JoinLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.KickLobbyDTO;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.LobbyService.ILobbyService;
@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/lobby")
+@RequestMapping("/api/lobby")
 public class LobbyController {
 
     @Autowired private final ILobbyService lobbyService;
@@ -42,7 +42,7 @@ public class LobbyController {
 
     @PostMapping("/join")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> joinLobby(@RequestBody  JoinLobbyDTO lobbyDTO)
+    public ResponseEntity<?> joinLobby(@RequestBody JoinLobbyDTO lobbyDTO)
             throws ExecutionException, InterruptedException {
         try {
             CompletableFuture<Lobby> l = lobbyService.joinLobby(lobbyDTO);
@@ -55,6 +55,7 @@ public class LobbyController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @PostMapping("/kick")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> kickFromLobby(@RequestBody KickLobbyDTO lobbyDTO)

@@ -1,10 +1,10 @@
 package com.example.proiectpao.controller;
 
 import com.example.proiectpao.collection.User;
-import com.example.proiectpao.dtos.AssignRoleDTO;
-import com.example.proiectpao.dtos.UserDTO;
-import com.example.proiectpao.dtos.UserLoginDTO;
-import com.example.proiectpao.dtos.UserRegisterDTO;
+import com.example.proiectpao.dtos.userDTOs.AssignRoleDTO;
+import com.example.proiectpao.dtos.userDTOs.UserDTO;
+import com.example.proiectpao.dtos.userDTOs.UserLoginDTO;
+import com.example.proiectpao.dtos.userDTOs.UserRegisterDTO;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
+@CrossOrigin(origins = "http://localhost:4200")
 public class UserController {
 
     @Autowired private IUserService userService;
@@ -77,15 +78,16 @@ public class UserController {
 
     @PostMapping("/uploadStats/{user}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Boolean> uploadStats(
+    public ResponseEntity<?> uploadStats(
             @RequestParam MultipartFile file, @PathVariable String user) {
         try {
             CompletableFuture<Boolean> userStats = userService.uploadStats(user, file);
             return new ResponseEntity<>(userStats.get(), HttpStatus.OK);
         } catch (NonExistentException e) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            System.err.println(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -1,11 +1,10 @@
 package com.example.proiectpao.service.LobbyService;
 
 import com.example.proiectpao.collection.Lobby;
-import com.example.proiectpao.dtos.CreateLobbyDTO;
-import com.example.proiectpao.dtos.JoinLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.CreateLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.JoinLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.KickLobbyDTO;
 import java.util.concurrent.CompletableFuture;
-
-import com.example.proiectpao.dtos.KickLobbyDTO;
 import org.springframework.scheduling.annotation.Async;
 
 public interface ILobbyService {

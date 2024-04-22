@@ -1,0 +1,14 @@
+<div class="login-container">
+    <form (ngSubmit)="login()" [formGroup]="loginForm">
+      <label for="username">Username:</label><br>
+      <input formControlName="username" type="text" id="username" name="username"><br>
+      <label for="password">Parola:</label><br>
+      <input formControlName="password" type="password" id="password" name="password"><br>
+      <label  for="remember">Remember me?:</label>
+      <input formControlName="remember" type="checkbox" id="remember" name="remember"><br>
+      <input type="submit" [disabled]="loginForm.invalid"value="Login">
+      <div *ngIf="errorMessage" class="error-message">{{errorMessage}}</div>
+
+    </form> 
+    <a (click)="register()">Nu ai un cont?</a>
+  </div>

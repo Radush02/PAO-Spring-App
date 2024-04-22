@@ -6,13 +6,14 @@ import static com.example.proiectpao.enums.Role.Moderator;
 import com.example.proiectpao.collection.Punish;
 import com.example.proiectpao.collection.Stats;
 import com.example.proiectpao.collection.User;
-import com.example.proiectpao.dtos.*;
+import com.example.proiectpao.dtos.userDTOs.*;
 import com.example.proiectpao.enums.Penalties;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.repository.PunishRepository;
 import com.example.proiectpao.repository.UserRepository;
 import com.example.proiectpao.service.S3Service.S3Service;
+import com.example.proiectpao.utils.FileParser.JsonFileParser;
 import com.google.gson.Gson;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -24,10 +25,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,12 +36,14 @@ public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final S3Service s3Service;
     private final PunishRepository punishRepository;
+    private final JsonFileParser jsonFileParser;
 
     public UserService(
             UserRepository userRepository, S3Service s3Service, PunishRepository punishRepository) {
         this.userRepository = userRepository;
         this.s3Service = s3Service;
         this.punishRepository = punishRepository;
+        this.jsonFileParser = new JsonFileParser();
     }
 
     /**
@@ -89,7 +90,7 @@ public class UserService implements IUserService {
     @Async
     public CompletableFuture<User> register(UserRegisterDTO userRegisterDTO) {
         if (userRepository.findByUsernameIgnoreCase(userRegisterDTO.getUsername()) != null) {
-            System.out.println("aaa");
+            // System.out.println("aaa");
             throw new AlreadyExistsException("Exista deja un user cu acest username");
         }
         User u = new User();
@@ -133,7 +134,7 @@ public class UserService implements IUserService {
         }
         List<Punish> banLog =
                 punishRepository.findAllByUserIDAndSanction(k.getUserId(), Penalties.Ban);
-        System.out.println(banLog.size());
+        // System.out.println(banLog.size());
         for (Punish p : banLog) {
             System.out.println(p.getExpiryDate() + " " + new Date());
             if (p.getExpiryDate().after(new Date())) {
@@ -143,7 +144,7 @@ public class UserService implements IUserService {
         UserDTO u = configureDTO(k);
 
         String password = userLoginDTO.getPassword();
-        System.out.println(password);
+        // System.out.println(password);
         byte[] salt = Base64.getDecoder().decode(k.getSeed());
         MessageDigest md = null;
         try {
@@ -225,7 +226,7 @@ public class UserService implements IUserService {
      * Metoda downloadUser returneaza un fisier JSON cu informatiile despre un utilizator.
      * @param username numele utilizatorului
      * @return - Fisierul JSON.
-     * @see <a href=" https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f"></a>
+     * @see <a href="https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f">Object Storage with Spring Boot and AWS S3</a>
      */
     @Override
     @Async
@@ -236,17 +237,7 @@ public class UserService implements IUserService {
         }
         UserDTO u = configureDTO(k);
         String userJson = new Gson().toJson(u);
-        System.out.println(userJson);
-        File temp = File.createTempFile("temp", ".json");
-        try (FileOutputStream fos = new FileOutputStream(temp)) {
-            fos.write(userJson.getBytes());
-        }
-        FileInputStream input = new FileInputStream(temp);
-        MultipartFile multipartFile =
-                new MockMultipartFile(
-                        "fileItem", temp.getName(), "application/json", IOUtils.toByteArray(input));
-        s3Service.uploadFile(k.getUserId() + ".json", multipartFile);
-        temp.delete();
+        jsonFileParser.write(userJson, s3Service);
         return CompletableFuture.completedFuture(
                 new InputStreamResource(
                         s3Service.getFile(k.getUserId() + ".json").getObjectContent()));
@@ -265,24 +256,13 @@ public class UserService implements IUserService {
         if (k == null) {
             throw new NonExistentException("Userul nu exista.");
         }
-        try {
-            InputStream is = file.getInputStream();
-            String json = IOUtils.toString(is, "UTF-8");
-            UserDTO u = new Gson().fromJson(json, UserDTO.class);
-            StatsDTO stats = u.getStats();
-            Stats w = k.getStats();
-            w.setWins(stats.getWins());
-            w.setLosses(stats.getLosses());
-            w.setKills(stats.getKills());
-            w.setDeaths(stats.getDeaths());
-            w.setHits(stats.getHits());
-            w.setHeadshots(stats.getHeadshots());
-            userRepository.save(k);
-        } catch (IOException e) {
-            e.printStackTrace();
-            // Nu ar trebui sa se ajunga aici oricum
-            return CompletableFuture.completedFuture(false);
+        if (file.getContentType() == null || !file.getContentType().equals("application/json")) {
+            throw new NonExistentException("Fisierul nu este de tip JSON.");
         }
-        return CompletableFuture.completedFuture(true);
+        if (jsonFileParser.read(k, file, s3Service)) {
+            // userRepository.save(k);
+            return CompletableFuture.completedFuture(true);
+        }
+        return CompletableFuture.completedFuture(false);
     }
 }
