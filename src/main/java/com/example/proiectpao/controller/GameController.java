@@ -31,4 +31,16 @@ public class GameController {
         }
         return new ResponseEntity<>(results.get(), HttpStatus.OK);
     }
+    @PostMapping("/attackTeam/{opponent}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> attackTeam(
+            @RequestBody UserLoginDTO userLoginDTO, @PathVariable String opponent)
+            throws ExecutionException, InterruptedException {
+        CompletableFuture<?> results =
+                gameService.attackTeam(userLoginDTO.getUsername(), opponent);
+        if (results == null) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(results.get(), HttpStatus.OK);
+    }
 }

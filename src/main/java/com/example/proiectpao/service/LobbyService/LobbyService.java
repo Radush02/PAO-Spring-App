@@ -34,7 +34,7 @@ public class LobbyService implements ILobbyService {
         if (u == null) {
             throw new NonExistentException("Userul nu exista.");
         }
-        if (lobbyRepository.findByLobbyLeader(u) != null) {
+        if (lobbyRepository.findByLobbyLeader(u.getUsername()) != null) {
             throw new AlreadyExistsException("Userul are deja un lobby creat.");
         }
         List<Lobby> lobbies = lobbyRepository.findAll();
@@ -45,7 +45,7 @@ public class LobbyService implements ILobbyService {
         }
         List<User> users = new ArrayList<>();
         users.add(u);
-        Lobby l = new Lobby(u, lobbyDTO.getName(), users);
+        Lobby l = new Lobby(String.valueOf(lobbies.size()),u.getUsername(), lobbyDTO.getName(), users);
         lobbyRepository.save(l);
         return CompletableFuture.completedFuture(l);
     }
@@ -61,10 +61,11 @@ public class LobbyService implements ILobbyService {
         if (leader == null || invited == null) {
             throw new NonExistentException("Userul nu exista.");
         }
-        Lobby l = lobbyRepository.findByLobbyLeader(leader);
+        Lobby l = lobbyRepository.findByLobbyLeader(leader.getUsername());
         if (l == null) {
             throw new NonExistentException("Userul nu are lobby creat.");
         }
+
         List<Lobby> lobbies = lobbyRepository.findAll();
         for (Lobby lobby : lobbies) {
             if (lobby.getPlayers().contains(invited)) {
@@ -89,10 +90,11 @@ public class LobbyService implements ILobbyService {
         if (leader == null || invited == null) {
             throw new NonExistentException("Userul nu exista.");
         }
-        Lobby l = lobbyRepository.findByLobbyLeader(leader);
+        Lobby l = lobbyRepository.findByLobbyLeader(leader.getUsername());
         if (l == null) {
             throw new NonExistentException("Userul nu are lobby creat.");
         }
+
         boolean inLobby = false;
         for (User u : l.getPlayers()) {
             if (u.equals(invited)) {
@@ -106,7 +108,7 @@ public class LobbyService implements ILobbyService {
         boolean passLast = false;
         List<User> users = l.getPlayers();
         if (leader == invited && users.size() > 1) {
-            l.setLobbyLeader(users.get(1));
+            l.setLobbyLeader(users.get(1).getUsername());
             passLast = true;
         }
         if (users.size() == 1 && !passLast) {
