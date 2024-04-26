@@ -10,8 +10,5 @@ public interface IChatService {
     void send(ChatDTO chat, String receiver);
 
     @Async
-    CompletableFuture<List<ChatDTO>> receive();
-
-    @Async
     CompletableFuture<List<String>> receive(String senderId, String username);
 }

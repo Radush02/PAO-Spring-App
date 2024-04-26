@@ -2,17 +2,12 @@ package com.example.proiectpao.collection;
 
 import com.example.proiectpao.enums.Results;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
-/*
- Denumiti attacker & defender pt a urmari mai bn actiunile
- Pt a evita teamA & teamB sau alte denumiri generice
-*/
+import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Builder
@@ -23,18 +18,20 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MultiplayerGame {
+    private String gameId;
     private User attackerCaptain;
     private User defenderCaptain;
     private Results result;
     private String score;
     private Date date;
-    private HashMap<String,MultiplayerUserStats> userStats;
+    private Map<String, MultiplayerUserStats> userStats;
+
     public static class MultiplayerGameBuilder {
         private User attackerCaptain;
         private User defenderCaptain;
         private Results result;
         private String score;
         private Date date = new Date();
-        private HashMap<String,MultiplayerUserStats> userStats;
+        private HashMap<String, MultiplayerUserStats> userStats;
     }
 }

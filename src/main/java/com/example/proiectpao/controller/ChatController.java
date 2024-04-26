@@ -23,19 +23,12 @@ public class ChatController {
         return new ResponseEntity<>(true, HttpStatus.CREATED);
     }
 
-    @GetMapping("/receive")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<ChatDTO>> receive() throws ExecutionException, InterruptedException {
-        CompletableFuture<List<ChatDTO>> chatDTOs = chatService.receive();
-        return new ResponseEntity<>(chatDTOs.get(), HttpStatus.OK);
-    }
-
     @GetMapping("/receive/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<String>> receive(
-            @RequestBody String senderId, @PathVariable String username)
+            @RequestBody String senderName, @PathVariable String username)
             throws ExecutionException, InterruptedException {
-        CompletableFuture<List<String>> chatDTOs = chatService.receive(senderId, username);
+        CompletableFuture<List<String>> chatDTOs = chatService.receive(senderName, username);
         return new ResponseEntity<>(chatDTOs.get(), HttpStatus.OK);
     }
 }

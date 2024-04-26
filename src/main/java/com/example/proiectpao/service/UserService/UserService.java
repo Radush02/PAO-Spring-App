@@ -3,16 +3,17 @@ package com.example.proiectpao.service.UserService;
 import static com.example.proiectpao.enums.Role.Admin;
 import static com.example.proiectpao.enums.Role.Moderator;
 
-import com.example.proiectpao.collection.Punish;
 import com.example.proiectpao.collection.Stats;
 import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.userDTOs.*;
 import com.example.proiectpao.enums.Penalties;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
+import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.repository.PunishRepository;
 import com.example.proiectpao.repository.UserRepository;
 import com.example.proiectpao.service.S3Service.S3Service;
+import com.example.proiectpao.utils.FileParser.FileParser;
 import com.example.proiectpao.utils.FileParser.JsonFileParser;
 import com.google.gson.Gson;
 import java.io.*;
@@ -20,10 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -43,7 +41,7 @@ public class UserService implements IUserService {
         this.userRepository = userRepository;
         this.s3Service = s3Service;
         this.punishRepository = punishRepository;
-        this.jsonFileParser = new JsonFileParser();
+        this.jsonFileParser = FileParser.getInstance(JsonFileParser.class);
     }
 
     /**
@@ -99,6 +97,7 @@ public class UserService implements IUserService {
         u.setEmail(userRegisterDTO.getEmail());
         u.setName(userRegisterDTO.getName());
         u.setStats(Stats.builder().build());
+        u.setGameIDs(new ArrayList<>());
         String password = userRegisterDTO.getPassword();
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
@@ -132,15 +131,10 @@ public class UserService implements IUserService {
         if (k == null) {
             throw new NonExistentException("Userul nu exista sau parola incorecta.");
         }
-        List<Punish> banLog =
-                punishRepository.findAllByUserIDAndSanction(k.getUserId(), Penalties.Ban);
-        // System.out.println(banLog.size());
-        for (Punish p : banLog) {
-            System.out.println(p.getExpiryDate() + " " + new Date());
-            if (p.getExpiryDate().after(new Date())) {
-                throw new NonExistentException("Userul este banat.");
-            }
-        }
+        if (!punishRepository
+                .findAllByUserIDAndSanctionAndExpiryDateIsAfter(
+                        k.getUserId(), Penalties.Ban, new Date())
+                .isEmpty()) throw new UnauthorizedActionException("Userul este banat.");
         UserDTO u = configureDTO(k);
 
         String password = userLoginDTO.getPassword();
@@ -237,10 +231,9 @@ public class UserService implements IUserService {
         }
         UserDTO u = configureDTO(k);
         String userJson = new Gson().toJson(u);
-        jsonFileParser.write(userJson, s3Service);
+        String nume = jsonFileParser.write(userJson, s3Service);
         return CompletableFuture.completedFuture(
-                new InputStreamResource(
-                        s3Service.getFile(k.getUserId() + ".json").getObjectContent()));
+                new InputStreamResource(s3Service.getFile(nume + ".json").getObjectContent()));
     }
 
     /**
@@ -260,7 +253,7 @@ public class UserService implements IUserService {
             throw new NonExistentException("Fisierul nu este de tip JSON.");
         }
         if (jsonFileParser.read(k, file, s3Service)) {
-            // userRepository.save(k);
+            userRepository.save(k);
             return CompletableFuture.completedFuture(true);
         }
         return CompletableFuture.completedFuture(false);

@@ -5,26 +5,33 @@ import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.lobbyDTOs.CreateLobbyDTO;
 import com.example.proiectpao.dtos.lobbyDTOs.JoinLobbyDTO;
 import com.example.proiectpao.dtos.lobbyDTOs.KickLobbyDTO;
+import com.example.proiectpao.enums.Penalties;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.repository.LobbyRepository;
+import com.example.proiectpao.repository.PunishRepository;
 import com.example.proiectpao.repository.UserRepository;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LobbyService implements ILobbyService {
-    @Autowired private final LobbyRepository lobbyRepository;
+    private final LobbyRepository lobbyRepository;
     private final UserRepository userRepository;
+    private final PunishRepository punishRepository;
 
-    public LobbyService(LobbyRepository lobbyRepository, UserRepository userRepository) {
+    public LobbyService(
+            LobbyRepository lobbyRepository,
+            UserRepository userRepository,
+            PunishRepository punishRepository) {
         this.lobbyRepository = lobbyRepository;
         this.userRepository = userRepository;
+        this.punishRepository = punishRepository;
     }
 
     @Override
@@ -33,6 +40,12 @@ public class LobbyService implements ILobbyService {
         User u = userRepository.findByUsernameIgnoreCase(lobbyDTO.getUsername());
         if (u == null) {
             throw new NonExistentException("Userul nu exista.");
+        }
+        if (!punishRepository
+                .findAllByUserIDAndSanctionAndExpiryDateIsAfter(
+                        u.getUserId(), Penalties.Ban, new Date())
+                .isEmpty()) {
+            throw new UnauthorizedActionException("Ai ban, nu poti crea lobby.");
         }
         if (lobbyRepository.findByLobbyLeader(u.getUsername()) != null) {
             throw new AlreadyExistsException("Userul are deja un lobby creat.");
@@ -45,7 +58,9 @@ public class LobbyService implements ILobbyService {
         }
         List<User> users = new ArrayList<>();
         users.add(u);
-        Lobby l = new Lobby(String.valueOf(lobbies.size()),u.getUsername(), lobbyDTO.getName(), users);
+        Lobby l =
+                new Lobby(
+                        String.valueOf(lobbies.size()), u.getUsername(), lobbyDTO.getName(), users);
         lobbyRepository.save(l);
         return CompletableFuture.completedFuture(l);
     }
@@ -61,6 +76,14 @@ public class LobbyService implements ILobbyService {
         if (leader == null || invited == null) {
             throw new NonExistentException("Userul nu exista.");
         }
+        if (!punishRepository
+                .findAllByUserIDAndSanctionAndExpiryDateIsAfter(
+                        leader.getUserId(), Penalties.Ban, new Date())
+                .isEmpty()) throw new UnauthorizedActionException("Liderul lobby-ului are ban.");
+        if (!punishRepository
+                .findAllByUserIDAndSanctionAndExpiryDateIsAfter(
+                        invited.getUserId(), Penalties.Ban, new Date())
+                .isEmpty()) throw new UnauthorizedActionException("Userul invitat are ban.");
         Lobby l = lobbyRepository.findByLobbyLeader(leader.getUsername());
         if (l == null) {
             throw new NonExistentException("Userul nu are lobby creat.");

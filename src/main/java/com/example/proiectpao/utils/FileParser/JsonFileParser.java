@@ -8,15 +8,16 @@ import com.example.proiectpao.dtos.userDTOs.UserDTO;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.example.proiectpao.utils.RandomGenerator.RandomNameGenerator;
-import java.io.*;
-import java.util.Objects;
-
 import com.google.gson.Gson;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import org.apache.commons.io.IOUtils;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 public class JsonFileParser extends FileParser {
+
     @Override
     public boolean read(Object user, MultipartFile file, S3Service s3) {
         try {
@@ -28,30 +29,25 @@ public class JsonFileParser extends FileParser {
             User k = (User) user;
             InputStream is = file.getInputStream();
             S3Object s3obj = s3.getFile(file.getOriginalFilename());
-            String json = IOUtils.toString(is, "UTF-8");
-            String s3Json = IOUtils.toString(s3obj.getObjectContent(), "UTF-8");
+            String json = IOUtils.toString(is, StandardCharsets.UTF_8);
+            String s3Json = IOUtils.toString(s3obj.getObjectContent(), StandardCharsets.UTF_8);
             if (!json.equals(s3Json)) {
-                System.out.println(json);
-                System.out.println(s3Json);
-                System.out.println("Continutul back-up-ului a fost modificat!");
+//                System.out.println(json);
+//                System.out.println(s3Json);
+//                System.out.println("Continutul back-up-ului a fost modificat!");
                 throw new NonExistentException("Continutul back-up-ului a fost modificat!");
             }
-            UserDTO u = new Gson().fromJson(json, UserDTO.class);
-            if(!Objects.equals(u.getName(), k.getName())){
+            User u = new Gson().fromJson(json, User.class);
+            if (!Objects.equals(u.getName(), k.getName())) {
                 throw new NonExistentException("Numele userului nu corespunde cu cel din fisier");
             }
-            StatsDTO stats = u.getStats();
-            Stats w = k.getStats();
-            w.setWins(stats.getWins());
-            w.setLosses(stats.getLosses());
-            w.setKills(stats.getKills());
-            w.setDeaths(stats.getDeaths());
-            w.setHits(stats.getHits());
-            w.setHeadshots(stats.getHeadshots());
+            k.setStats(u.getStats());
+            k.setGameIDs(u.getGameIDs());
+            k.setName(u.getName());
         } catch (IOException e) {
             e.printStackTrace();
             return false;
-        } catch(com.amazonaws.SdkClientException e){
+        } catch (com.amazonaws.SdkClientException e) {
             throw new NonExistentException("Fisierul trimis nu exista in baza noastra de date");
         }
         return true;

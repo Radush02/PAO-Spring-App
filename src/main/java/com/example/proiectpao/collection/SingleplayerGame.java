@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SingleplayerGame {
+    private String gameId;
     private String userId;
     private String opponentId;
     private Results result;

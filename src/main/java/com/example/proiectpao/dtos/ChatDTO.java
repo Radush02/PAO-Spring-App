@@ -10,6 +10,5 @@ import lombok.Setter;
 @Setter
 public class ChatDTO {
     private String message;
-    private String senderId;
-    private String receiverId;
+    private String senderName;
 }

@@ -65,14 +65,14 @@ public class UserController {
 
     @GetMapping("/downloadUser")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Resource> downloadUser(@RequestBody UserLoginDTO userLoginDTO) {
+    public ResponseEntity<?> downloadUser(@RequestBody UserLoginDTO userLoginDTO) {
         try {
             CompletableFuture<Resource> user = userService.downloadUser(userLoginDTO.getUsername());
             return new ResponseEntity<>(user.get(), HttpStatus.OK);
         } catch (NonExistentException e) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -84,10 +84,10 @@ public class UserController {
             CompletableFuture<Boolean> userStats = userService.uploadStats(user, file);
             return new ResponseEntity<>(userStats.get(), HttpStatus.OK);
         } catch (NonExistentException e) {
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

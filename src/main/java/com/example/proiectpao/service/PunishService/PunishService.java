@@ -16,14 +16,13 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PunishService implements IPunishService {
 
-    @Autowired private UserRepository userRepository;
+    private final UserRepository userRepository;
     private final PunishRepository punishRepository;
 
     public PunishService(UserRepository userRepository, PunishRepository punishRepository) {
@@ -140,14 +139,15 @@ public class PunishService implements IPunishService {
         else if (a.getRole() != Role.Admin) {
             throw new UnauthorizedActionException("Nu ai suficiente permisiuni.");
         }
-        List<Punish> pLog =
-                punishRepository.findAllByUserIDAndSanction(u.getUserId(), Penalties.Ban);
-        for (Punish p : pLog) {
-            if (p.getExpiryDate().after(new Date())) {
-                punishRepository.delete(p);
-                trackAction("a debanat pe ", a, u, null);
-                return CompletableFuture.completedFuture("Debanat");
-            }
+        List<Punish> pnsh =
+                punishRepository.findAllByUserIDAndSanctionAndExpiryDateIsAfter(
+                        u.getUserId(), Penalties.Ban, new Date());
+        for (Punish p : pnsh) {
+            punishRepository.delete(p);
+            trackAction("a debanat pe ", a, u, null);
+        }
+        if (!pnsh.isEmpty()) {
+            return CompletableFuture.completedFuture("Debanat");
         }
         trackAction("a incercat sa debaneze pe ", a, u, null);
         return CompletableFuture.completedFuture("Nu e banat");
@@ -162,14 +162,15 @@ public class PunishService implements IPunishService {
         else if (a.getRole() != Role.Admin) {
             throw new UnauthorizedActionException("Nu ai suficiente permisiuni.");
         }
-        List<Punish> pLog =
-                punishRepository.findAllByUserIDAndSanction(u.getUserId(), Penalties.Mute);
-        for (Punish p : pLog) {
-            if (p.getExpiryDate().after(new Date())) {
-                punishRepository.delete(p);
-                trackAction("a dat unmute lui ", a, u, null);
-                return CompletableFuture.completedFuture("A primit unmute");
-            }
+        List<Punish> pnsh =
+                punishRepository.findAllByUserIDAndSanctionAndExpiryDateIsAfter(
+                        u.getUserId(), Penalties.Mute, new Date());
+        for (Punish p : pnsh) {
+            punishRepository.delete(p);
+            trackAction("a dat unmute lui ", a, u, null);
+        }
+        if (!pnsh.isEmpty()) {
+            return CompletableFuture.completedFuture("A primit unmute");
         }
         trackAction("a incercat sa dea unmute ", a, u, null);
         return CompletableFuture.completedFuture("Nu e muted");

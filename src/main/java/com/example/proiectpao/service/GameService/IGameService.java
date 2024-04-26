@@ -1,8 +1,11 @@
 package com.example.proiectpao.service.GameService;
 
 import com.example.proiectpao.enums.Results;
+
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface IGameService {
     /**
@@ -32,4 +35,10 @@ public interface IGameService {
 
     @Async
     CompletableFuture<?> attackTeam(String attackerCaptain, String defenderCaptain);
+
+    @Async
+    CompletableFuture<?> exportMultiplayerGame(String gameId);
+
+    @Async
+    CompletableFuture<?> importMultiplayerGame(String gameId, MultipartFile file) throws IOException;
 }
