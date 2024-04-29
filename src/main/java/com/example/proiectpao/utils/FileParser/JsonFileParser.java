@@ -1,10 +1,7 @@
 package com.example.proiectpao.utils.FileParser;
 
 import com.amazonaws.services.s3.model.S3Object;
-import com.example.proiectpao.collection.Stats;
 import com.example.proiectpao.collection.User;
-import com.example.proiectpao.dtos.userDTOs.StatsDTO;
-import com.example.proiectpao.dtos.userDTOs.UserDTO;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.example.proiectpao.utils.RandomGenerator.RandomNameGenerator;
@@ -32,9 +29,9 @@ public class JsonFileParser extends FileParser {
             String json = IOUtils.toString(is, StandardCharsets.UTF_8);
             String s3Json = IOUtils.toString(s3obj.getObjectContent(), StandardCharsets.UTF_8);
             if (!json.equals(s3Json)) {
-//                System.out.println(json);
-//                System.out.println(s3Json);
-//                System.out.println("Continutul back-up-ului a fost modificat!");
+                //                System.out.println(json);
+                //                System.out.println(s3Json);
+                //                System.out.println("Continutul back-up-ului a fost modificat!");
                 throw new NonExistentException("Continutul back-up-ului a fost modificat!");
             }
             User u = new Gson().fromJson(json, User.class);

@@ -21,14 +21,14 @@ export class UserService {
   }
 
   isLoggedIn(): string {
-    const token=this.cookieService.get('user');
+    const token=this.cookieService.get('token');
     if (token) {
       return token;
     }
     return "";
   }
   logout():any{
-    this.cookieService.delete('user');
+    this.cookieService.delete('token');
     //return this.http.post(`${this.apiKey}/logout`,null);
     return null;
   } 

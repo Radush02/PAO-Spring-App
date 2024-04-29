@@ -28,16 +28,16 @@ export class LoginComponent implements OnInit {
 
   login() {
     this.loginService.login(this.loginForm.value).subscribe(
-      (response: any) => {
+      (response: userDTO) => {
         this.cookieService.set
-        ('token', response, undefined, '/', undefined, false, "Strict");
+        ('token', JSON.stringify(response), undefined, '/', undefined, false, "Strict");
         this.errorMessage = 'Conectat';
         this.router.navigate(['/dashboard']);
       },
       (error: any) => {
         console.log(this.loginForm.value);
         console.error(error);
-        this.errorMessage = error.error;
+        this.errorMessage = error.error.split(': ')[1];
       }
     );
   }
@@ -56,4 +56,23 @@ export class LoginComponent implements OnInit {
       }
     });
   }
+}  
+interface userDTO{
+    userId:string;
+    username:string;
+    email:string;
+    name:string;
+    role:string;
+    stats:statsDTO;
+}
+interface statsDTO{
+  wins: number;
+  losses: number;
+  kills: number;
+  deaths: number;
+  hits: number;
+  headshots: number;
+  WR: number;
+  KDR: number;
+  HSp: number;
 }

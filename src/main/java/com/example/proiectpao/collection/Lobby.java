@@ -19,5 +19,5 @@ public class Lobby {
     private @Id String id;
     private String lobbyLeader;
     private String lobbyName;
-    private List<User> players;
+    private List<String> players;
 }

@@ -52,12 +52,12 @@ public class LobbyService implements ILobbyService {
         }
         List<Lobby> lobbies = lobbyRepository.findAll();
         for (Lobby lobby : lobbies) {
-            if (lobby.getPlayers().contains(u)) {
+            if (lobby.getPlayers().contains(u.getUsername())) {
                 throw new AlreadyExistsException("Userul este deja in alt lobby.");
             }
         }
-        List<User> users = new ArrayList<>();
-        users.add(u);
+        List<String> users = new ArrayList<>();
+        users.add(u.getUsername());
         Lobby l =
                 new Lobby(
                         String.valueOf(lobbies.size()), u.getUsername(), lobbyDTO.getName(), users);
@@ -91,15 +91,15 @@ public class LobbyService implements ILobbyService {
 
         List<Lobby> lobbies = lobbyRepository.findAll();
         for (Lobby lobby : lobbies) {
-            if (lobby.getPlayers().contains(invited)) {
+            if (lobby.getPlayers().contains(invited.getUsername())) {
                 throw new AlreadyExistsException("Userul este deja in alt lobby.");
             }
         }
-        List<User> users = l.getPlayers();
+        List<String> users = l.getPlayers();
         if (users.size() >= 5) {
             throw new UnauthorizedActionException("Lobby-ul este plin.");
         }
-        users.add(invited);
+        users.add(invited.getUsername());
         l.setPlayers(users);
         lobbyRepository.save(l);
         return CompletableFuture.completedFuture(l);
@@ -119,8 +119,8 @@ public class LobbyService implements ILobbyService {
         }
 
         boolean inLobby = false;
-        for (User u : l.getPlayers()) {
-            if (u.equals(invited)) {
+        for (String u : l.getPlayers()) {
+            if (u.equals(invited.getUsername())) {
                 inLobby = true;
                 break;
             }
@@ -129,16 +129,16 @@ public class LobbyService implements ILobbyService {
             throw new NonExistentException("Userul nu este in lobby.");
         }
         boolean passLast = false;
-        List<User> users = l.getPlayers();
+        List<String> users = l.getPlayers();
         if (leader == invited && users.size() > 1) {
-            l.setLobbyLeader(users.get(1).getUsername());
+            l.setLobbyLeader(users.get(1));
             passLast = true;
         }
         if (users.size() == 1 && !passLast) {
             lobbyRepository.delete(l);
             return CompletableFuture.completedFuture(null);
         }
-        users.remove(invited);
+        users.remove(invited.getUsername());
         l.setPlayers(users);
         lobbyRepository.save(l);
         return CompletableFuture.completedFuture(l);

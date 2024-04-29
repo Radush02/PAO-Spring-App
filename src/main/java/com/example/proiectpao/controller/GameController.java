@@ -5,7 +5,6 @@ import com.example.proiectpao.enums.Results;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.service.GameService.IGameService;
-
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -17,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/game")
+@CrossOrigin(origins = "http://localhost:4200")
 public class GameController {
     @Autowired private final IGameService gameService;
 
@@ -66,12 +66,26 @@ public class GameController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
-    @PostMapping("/importMultiplayerGame/{gameId}")
+
+    @GetMapping("displayMultiplayerGame/{username}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> importMultiplayerGame(@PathVariable String gameId, @RequestBody MultipartFile file)
+    public ResponseEntity<?> displayMultiplayerGame(@PathVariable String username)
             throws ExecutionException, InterruptedException {
         try {
-            CompletableFuture<?> results = gameService.importMultiplayerGame(gameId,file);
+            CompletableFuture<?> results = gameService.displayMultiplayerGame(username);
+            return new ResponseEntity<>(results.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/importMultiplayerGame/{gameId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> importMultiplayerGame(
+            @PathVariable String gameId, @RequestBody MultipartFile file)
+            throws ExecutionException, InterruptedException {
+        try {
+            CompletableFuture<?> results = gameService.importMultiplayerGame(gameId, file);
             return new ResponseEntity<>(results.get(), HttpStatus.OK);
         } catch (NonExistentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);

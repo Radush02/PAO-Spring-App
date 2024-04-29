@@ -2,6 +2,7 @@ package com.example.proiectpao.collection;
 
 import com.example.proiectpao.enums.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -27,6 +28,7 @@ public class User {
 
     public User() {
         this.role = Role.User;
+        gameIDs = new ArrayList<>();
     }
 
     public void addHits(int i) {
@@ -51,5 +53,9 @@ public class User {
 
     public void addLoss() {
         stats.setLosses(stats.getLosses() + 1);
+    }
+
+    public void addGame(String game) {
+        gameIDs.add(game);
     }
 }
