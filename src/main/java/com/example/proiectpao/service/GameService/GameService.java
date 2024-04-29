@@ -333,7 +333,7 @@ public class GameService implements IGameService {
     }
 
     private void addGameResult(Lobby winner, Lobby loser, MultiplayerGame multiplayerGame) {
-        for (String w: winner.getPlayers()) {
+        for (String w : winner.getPlayers()) {
             User u = userRepository.findByUsernameIgnoreCase(w);
             u.addWin();
             u.setStats(
@@ -342,28 +342,16 @@ public class GameService implements IGameService {
                             .losses(u.getStats().getLosses())
                             .kills(
                                     u.getStats().getKills()
-                                            + multiplayerGame
-                                                    .getUserStats()
-                                                    .get(w)
-                                                    .getKills())
+                                            + multiplayerGame.getUserStats().get(w).getKills())
                             .hits(
                                     u.getStats().getHits()
-                                            + multiplayerGame
-                                                    .getUserStats()
-                                                    .get(w)
-                                                    .getHits())
+                                            + multiplayerGame.getUserStats().get(w).getHits())
                             .headshots(
                                     u.getStats().getHeadshots()
-                                            + multiplayerGame
-                                                    .getUserStats()
-                                                    .get(w)
-                                                    .getHeadshots())
+                                            + multiplayerGame.getUserStats().get(w).getHeadshots())
                             .deaths(
                                     u.getStats().getDeaths()
-                                            + multiplayerGame
-                                                    .getUserStats()
-                                                    .get(w)
-                                                    .getDeaths())
+                                            + multiplayerGame.getUserStats().get(w).getDeaths())
                             .build());
             u.addGame(multiplayerGame.getGameId());
             userRepository.save(u);
@@ -377,28 +365,16 @@ public class GameService implements IGameService {
                             .losses(u.getStats().getLosses() + 1)
                             .kills(
                                     u.getStats().getKills()
-                                            + multiplayerGame
-                                                    .getUserStats()
-                                                    .get(w)
-                                                    .getKills())
+                                            + multiplayerGame.getUserStats().get(w).getKills())
                             .hits(
                                     u.getStats().getHits()
-                                            + multiplayerGame
-                                                    .getUserStats()
-                                                    .get(w)
-                                                    .getHits())
+                                            + multiplayerGame.getUserStats().get(w).getHits())
                             .headshots(
                                     u.getStats().getHeadshots()
-                                            + multiplayerGame
-                                                    .getUserStats()
-                                                    .get(w)
-                                                    .getHeadshots())
+                                            + multiplayerGame.getUserStats().get(w).getHeadshots())
                             .deaths(
                                     u.getStats().getDeaths()
-                                            + multiplayerGame
-                                                    .getUserStats()
-                                                    .get(w)
-                                                    .getDeaths())
+                                            + multiplayerGame.getUserStats().get(w).getDeaths())
                             .build());
             u.addGame(multiplayerGame.getGameId());
             userRepository.save(u);
