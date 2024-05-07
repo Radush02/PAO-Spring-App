@@ -1,8 +1,11 @@
-<app-navbar></app-navbar>
+<app-navbar/>
 <div class="dashboard">
-  <h1>Hello {{username}}</h1>
-  <h2>Match history:</h2>
-    <div class="match-history">
-
+  <h1>Salut {{username}}</h1>
+  <h2>Istoric meciuri:</h2>
+  <div *ngIf="isLoading">Loading...</div>
+  <div *ngIf="!isLoading">
+    <div *ngFor="let match of matchHistory" class="match">
+      <h3 (click)="redirectToGame(match.gameId)">{{match.attackerLobbyName}} vs {{ match.defenderLobbyName }}</h3>
+      <p>{{ match.result }} - {{match.score}} </p>
     </div>
 </div>

@@ -16,12 +16,24 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/lobby")
+@CrossOrigin(origins = "http://localhost:4200")
 public class LobbyController {
 
     @Autowired private final ILobbyService lobbyService;
 
     public LobbyController(ILobbyService lobbyService) {
         this.lobbyService = lobbyService;
+    }
+
+    @GetMapping("/getLeaders")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> getLeaders() throws ExecutionException, InterruptedException {
+        try {
+            CompletableFuture<?> l = lobbyService.getLobbyLeaders();
+            return new ResponseEntity<>(l.get(), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/create")
@@ -35,6 +47,39 @@ public class LobbyController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (NonExistentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/inLobby/{username}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> inLobby(@PathVariable String username)
+            throws ExecutionException, InterruptedException {
+        try {
+            CompletableFuture<String> l = lobbyService.inLobby(username);
+            return new ResponseEntity<>(l.get(), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("/inLobby/{lobby}/{username}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> inLobby(@PathVariable String lobby, @PathVariable String username)
+            throws ExecutionException, InterruptedException {
+        try {
+            CompletableFuture<Boolean> l = lobbyService.inLobby(lobby, username);
+            return new ResponseEntity<>(l.get(), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("/getLobbies")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> getLobbies() throws ExecutionException, InterruptedException {
+        try {
+            CompletableFuture<?> l = lobbyService.getLobbies();
+            return new ResponseEntity<>(l.get(), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

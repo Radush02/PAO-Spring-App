@@ -1,0 +1,47 @@
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .profile-info {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .profile-data {
+    margin-bottom: 10px;
+  }
+  
+  .profile-username {
+    font-weight: bold;
+  }
+  
+  .profile-role {
+    font-style: italic;
+  }
+  
+  .profile-stats {
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  .profile-stats-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .profile-stats-data {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .profile-stats-data div {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+  }
+  

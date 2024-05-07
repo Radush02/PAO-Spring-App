@@ -152,50 +152,25 @@ public class GameService implements IGameService {
             throw new NonExistentException(
                     "Echipa lui " + defender.getUsername() + " nu are 5 jucatori!");
         }
+        if(lobbyAttacker.getLobbyName().equals(lobbyDefender.getLobbyName())){
+            throw new UnauthorizedActionException("Nu te poti ataca!");
+        }
+
+        List<User> attackerArray = new ArrayList<>();
+        List<User> defenderArray = new ArrayList<>();
+        for (String username : lobbyDefender.getPlayers()) {
+            User user = userRepository.findByUsernameIgnoreCase(username);
+            defenderArray.add(user);
+        }
+        for (String username : lobbyAttacker.getPlayers()) {
+            User user = userRepository.findByUsernameIgnoreCase(username);
+            attackerArray.add(user);
+        }
         List<User> attackerCopy = new ArrayList<>();
         List<User> defenderCopy = new ArrayList<>();
-        HashMap<String, Stats> gameStats = new HashMap<>();
-        for (String u : lobbyAttacker.getPlayers()) {
-            User w = userRepository.findByUsernameIgnoreCase(u);
-            if (!punishRepository
-                    .findAllByUserIDAndSanctionAndExpiryDateIsAfter(
-                            w.getUserId(), Penalties.Ban, new Date())
-                    .isEmpty()) {
-                lobbyRepository.delete(lobbyAttacker);
-                throw new UnauthorizedActionException(
-                        u + ", esti banat, nu poti juca. Lobby-ul a fost sters.");
-            }
-            gameStats.put(
-                    w.getUsername(),
-                    new Stats(
-                            w.getStats().getWins(),
-                            w.getStats().getLosses(),
-                            w.getStats().getKills(),
-                            w.getStats().getDeaths(),
-                            w.getStats().getHits(),
-                            w.getStats().getHeadshots()));
-        }
-        for (String w : lobbyDefender.getPlayers()) {
-            User u = userRepository.findByUsernameIgnoreCase(w);
-
-            if (!punishRepository
-                    .findAllByUserIDAndSanctionAndExpiryDateIsAfter(
-                            u.getUserId(), Penalties.Ban, new Date())
-                    .isEmpty()) {
-                lobbyRepository.delete(lobbyDefender);
-                throw new UnauthorizedActionException(
-                        u.getUsername() + ", esti banat, nu poti juca. Lobby-ul a fost sters.");
-            }
-            gameStats.put(
-                    u.getUsername(),
-                    new Stats(
-                            u.getStats().getWins(),
-                            u.getStats().getLosses(),
-                            u.getStats().getKills(),
-                            u.getStats().getDeaths(),
-                            u.getStats().getHits(),
-                            u.getStats().getHeadshots()));
-        }
+        HashMap<String, MultiplayerUserStats> gameStats = new HashMap<>();
+        checkPunish(lobbyAttacker, attackerArray, gameStats);
+        checkPunish(lobbyDefender, defenderArray, gameStats);
         int no_rounds = 24,
                 attacker_score = 0,
                 defender_score = 0,
@@ -206,25 +181,17 @@ public class GameService implements IGameService {
             // System.out.println(no_rounds);
             defenderCopy.clear();
             attackerCopy.clear();
-            for (String username : lobbyDefender.getPlayers()) {
-                User user = userRepository.findByUsernameIgnoreCase(username);
-                defenderCopy.add(user);
-            }
-            for (String username : lobbyAttacker.getPlayers()) {
-                User user = userRepository.findByUsernameIgnoreCase(username);
-                attackerCopy.add(user);
-            }
+            attackerCopy.addAll(attackerArray);
+            defenderCopy.addAll(defenderArray);
             Collections.shuffle(attackerCopy);
             Collections.shuffle(defenderCopy);
             while (!attackerCopy.isEmpty() && !defenderCopy.isEmpty()) {
-                User attackerPlayer = attackerCopy.get(0);
-                User defenderPlayer = defenderCopy.get(0);
+                User attackerPlayer = attackerCopy.getFirst();
+                User defenderPlayer = defenderCopy.getFirst();
                 Random r = new Random();
                 int attacker_roll = r.nextInt(6) + 1;
                 int defender_roll = r.nextInt(6) + 1;
                 if (attacker_roll > defender_roll) {
-                    // System.out.println(attackerPlayer.getUsername() + " vs " +
-                    // defenderPlayer.getUsername());
                     attacker_score =
                             attackHelper(
                                     attackerPlayer,
@@ -234,8 +201,6 @@ public class GameService implements IGameService {
                                     defender_roll);
                     defenderCopy.remove(defenderPlayer);
                 } else if (attacker_roll < defender_roll) {
-                    // System.out.println(attackerPlayer.getUsername() + " vs " +
-                    // defenderPlayer.getUsername());
                     attackerCopy.remove(attackerPlayer);
                     defender_score =
                             attackHelper(
@@ -256,10 +221,8 @@ public class GameService implements IGameService {
             if (attackerRounds > 12 + 3 * no_ot && defenderRounds < 12 + 3 * no_ot) break;
             if (defenderRounds > 12 + 3 * no_ot && attackerRounds < 12 + 3 * no_ot) break;
         }
-
-        HashMap<String, MultiplayerUserStats> results = new HashMap<>();
-        fetchResults(lobbyAttacker, gameStats, results);
-        fetchResults(lobbyDefender, gameStats, results);
+        addStats(defenderArray, gameStats);
+        addStats(attackerArray, gameStats);
         MultiplayerGame multiplayerGame =
                 MultiplayerGame.builder()
                         .gameId(UUID.randomUUID().toString())
@@ -269,18 +232,69 @@ public class GameService implements IGameService {
                         .defenderLobbyName(lobbyDefender.getLobbyName())
                         .result(attackerRounds > defenderRounds ? Results.Win : Results.Loss)
                         .score(attackerRounds + "-" + defenderRounds)
-                        .userStats(results)
+                        .userStats(gameStats)
                         .build();
-        System.out.println(lobbyAttacker.getLobbyName());
-        System.out.println(multiplayerGame.getAttackerLobbyName());
-        multiplayerGameRepository.save(multiplayerGame);
+
         if (attackerRounds > defenderRounds) {
             addGameResult(lobbyAttacker, lobbyDefender, multiplayerGame);
+            for(User u: attackerArray){
+                gameStats.get(u.getUsername()).setWin(true);
+            }
         } else {
             addGameResult(lobbyDefender, lobbyAttacker, multiplayerGame);
+            for(User u: defenderArray){
+                gameStats.get(u.getUsername()).setWin(true);
+            }
         }
-        return CompletableFuture.completedFuture(
-                attackerRounds > defenderRounds ? Results.Win : Results.Loss);
+        multiplayerGameRepository.save(multiplayerGame);
+
+        return CompletableFuture.completedFuture(multiplayerGame.getGameId());
+    }
+
+    private void checkPunish(Lobby lobby, List<User> users, HashMap<String, MultiplayerUserStats> gameStats) {
+        for (User u: users) {
+
+            if (!punishRepository
+                    .findAllByUserIDAndSanctionAndExpiryDateIsAfter(
+                            u.getUserId(), Penalties.Ban, new Date())
+                    .isEmpty()) {
+                lobbyRepository.delete(lobby);
+                throw new UnauthorizedActionException(
+                        u.getUsername() + ", esti banat, nu poti juca. Lobby-ul a fost sters.");
+            }
+            gameStats.put(
+                    u.getUsername(),
+                    new MultiplayerUserStats(
+                            u.getStats().getKills(),
+                            u.getStats().getDeaths(),
+                            u.getStats().getHeadshots(),
+                            u.getStats().getHits(),false));
+        }
+    }
+
+    private void addStats(List<User> defenderArray, HashMap<String, MultiplayerUserStats> gameStats) {
+        for(User u: defenderArray){
+            gameStats.put(
+                    u.getUsername(),
+                    MultiplayerUserStats.builder()
+                            .kills(
+                                    u.getStats().getKills()
+                                            - gameStats.get(u.getUsername()).getKills())
+                            .hits(
+                                    u.getStats().getHits()
+                                            - gameStats.get(u.getUsername()).getHits())
+                            .headshots(
+                                    u.getStats().getHeadshots()
+                                            - gameStats.get(u.getUsername()).getHeadshots())
+                            .deaths(
+                                    u.getStats().getDeaths()
+                                            - gameStats.get(u.getUsername()).getDeaths())
+                            .build()
+            );
+            System.out.println(u.getUsername() + " " + u.getStats().getKills() + " " + u.getStats().getDeaths()+ " " + u.getStats().getHits()+ " " + u.getStats().getHeadshots());
+            System.out.println(gameStats.get(u.getUsername()).getKills() + " " + gameStats.get(u.getUsername()).getDeaths()+ " " + gameStats.get(u.getUsername()).getHits()+ " " + gameStats.get(u.getUsername()).getHeadshots());
+        }
+
     }
 
     @Override
@@ -319,7 +333,15 @@ public class GameService implements IGameService {
         }
         return CompletableFuture.completedFuture(multiplayerGames);
     }
-
+    @Override
+    @Async
+    public CompletableFuture<?> getGame(String gameId){
+        MultiplayerGame multiplayerGame = multiplayerGameRepository.findByGameId(gameId);
+        if(multiplayerGame == null){
+            throw new NonExistentException("Meciul nu exista");
+        }
+        return CompletableFuture.completedFuture(multiplayerGame);
+    }
     @Override
     @Async
     public CompletableFuture<?> importMultiplayerGame(String gameId, MultipartFile file)
@@ -338,7 +360,7 @@ public class GameService implements IGameService {
             u.addWin();
             u.setStats(
                     Stats.builder()
-                            .wins(u.getStats().getWins() + 1)
+                            .wins(u.getStats().getWins())
                             .losses(u.getStats().getLosses())
                             .kills(
                                     u.getStats().getKills()
@@ -362,7 +384,7 @@ public class GameService implements IGameService {
             u.setStats(
                     Stats.builder()
                             .wins(u.getStats().getWins())
-                            .losses(u.getStats().getLosses() + 1)
+                            .losses(u.getStats().getLosses())
                             .kills(
                                     u.getStats().getKills()
                                             + multiplayerGame.getUserStats().get(w).getKills())
@@ -380,30 +402,6 @@ public class GameService implements IGameService {
             userRepository.save(u);
         }
     }
-
-    private void fetchResults(
-            Lobby lobbyPlayer,
-            HashMap<String, Stats> gameStats,
-            HashMap<String, MultiplayerUserStats> results) {
-        for (String w : lobbyPlayer.getPlayers()) {
-            User u = userRepository.findByUsernameIgnoreCase(w);
-            results.put(
-                    u.getUsername(),
-                    MultiplayerUserStats.builder()
-                            .kills(
-                                    u.getStats().getKills()
-                                            - gameStats.get(u.getUsername()).getKills())
-                            .deaths(
-                                    u.getStats().getDeaths()
-                                            - gameStats.get(u.getUsername()).getDeaths())
-                            .headshots(
-                                    u.getStats().getHeadshots()
-                                            - gameStats.get(u.getUsername()).getHeadshots())
-                            .hits(u.getStats().getHits() - gameStats.get(u.getUsername()).getHits())
-                            .build());
-        }
-    }
-
     private int attackHelper(
             User attacker,
             User defender,

@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ChatRepository extends MongoRepository<Chat, String> {
-    public List<Chat> findAllBySenderNameAndReceiverName(String senderName, String receiverName);
+    List<Chat> findAllBySenderNameAndReceiverName(String senderName, String receiverName);
 }

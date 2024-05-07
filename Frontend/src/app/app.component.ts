@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient,HttpClientModule} from '@angular/common/http';
 import { FormsModule, NgModel } from '@angular/forms';
 import { LoginComponent } from './components/login/login.component';
+import { CookieService } from 'ngx-cookie-service';
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -14,8 +15,10 @@ import { LoginComponent } from './components/login/login.component';
 
 export class AppComponent implements OnInit{
   title = 'ProiectFrontend';
-  constructor(private router:Router) {}
+  constructor(private router:Router,private cookieService:CookieService) {}
   ngOnInit() {
-    this.router.navigate(['/login']);
+    if(this.cookieService.get('token')=="")
+      this.router.navigate(['/login']);
+    
   }
 }

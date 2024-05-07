@@ -1,0 +1,21 @@
+<div *ngIf="isLoading">Loading...</div>
+  <div *ngIf="!isLoading">
+<div class="match">
+      <h2>{{match.attackerLobbyName}} vs {{ match.defenderLobbyName }} </h2>
+      <p>{{ match.result }} - {{match.score}} </p>
+
+      <h3>Castigator: {{winnerTeam}}</h3>
+      <div *ngFor="let player of usernames">
+        <div *ngIf="match.userStats[player].win==true">
+        <p>{{ player }} - Kills: {{ match.userStats[player].kills }}, Deaths: {{ match.userStats[player].deaths }}, Headshots: {{ match.userStats[player].headshots }}, Hits: {{ match.userStats[player].hits }}</p>
+    </div>
+      </div>
+      <h3>Pierzator: {{loserTeam}} </h3>
+      <div *ngFor="let player of usernames">
+        <div *ngIf="match.userStats[player].win==false">
+        <p>{{ player }} - Kills: {{ match.userStats[player].kills }}, Deaths: {{ match.userStats[player].deaths }}, Headshots: {{ match.userStats[player].headshots }}, Hits: {{ match.userStats[player].hits }}</p>
+    </div>
+      </div>
+</div>
+<button (click)="redirectToHome()">Acasa</button>
+</div>

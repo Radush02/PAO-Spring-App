@@ -11,4 +11,5 @@ public class MultiplayerUserStats {
     private int deaths;
     private int headshots;
     private int hits;
+    private boolean win;
 }

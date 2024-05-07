@@ -36,7 +36,6 @@ public class GameController {
         }
         return new ResponseEntity<>(results.get(), HttpStatus.OK);
     }
-
     @PostMapping("/attackTeam/{opponent}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> attackTeam(
@@ -66,7 +65,17 @@ public class GameController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
-
+    @GetMapping("/getGame/{gameId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> getGame(@PathVariable String gameId)
+            throws ExecutionException, InterruptedException {
+        try {
+            CompletableFuture<?> results = gameService.getGame(gameId);
+            return new ResponseEntity<>(results.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
     @GetMapping("displayMultiplayerGame/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> displayMultiplayerGame(@PathVariable String username)

@@ -29,7 +29,6 @@ export class UserService {
   }
   logout():any{
     this.cookieService.delete('token');
-    //return this.http.post(`${this.apiKey}/logout`,null);
     return null;
   } 
 }

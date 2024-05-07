@@ -4,7 +4,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { GameService } from '../../services/game.service';
 @Component({
   selector: 'app-dashboard',
@@ -15,19 +15,51 @@ import { GameService } from '../../services/game.service';
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
+
   username = '';
-  matchHistory=[];
-  constructor(private cookieService: CookieService,private gameService: GameService) { }
+  matchHistory: matchHistoryDTO[] = [];
+  user: UserStatsDTO[] = [];
+  isLoading=false;
+  constructor(private cookieService: CookieService,private gameService: GameService,private router:Router) { }
+  redirectToGame(resultGameId: string) {
+    this.router.navigate(['/game'], { queryParams: { gameId: resultGameId } });
+  }
+  async getGameHistory(){
+    this.isLoading=true;
+    this.gameService.getGames(this.username).subscribe((data: any[]) => {
+      this.matchHistory = data;
+      for (let i = 0; i < this.matchHistory.length; i++) {
+        const match = this.matchHistory[i];
+        const userStats = data[i].userStats[this.username];
+        match.result = userStats.win ? "Win" : "Loss";
+        if (match.result === "Loss") {
+          [match.attackerLobbyName, match.defenderLobbyName] = [match.defenderLobbyName, match.attackerLobbyName];
+          [match.attackerCaptain, match.defenderCaptain] = [match.defenderCaptain, match.attackerCaptain];
+          match.score = match.score.split('-').reverse().join('-');
+        }
+      }
+      this.isLoading=false;
+    });
+  }
   ngOnInit() {
     this.username=JSON.parse(this.cookieService.get('token')).username;
-    this.gameService.getGames(this.username).subscribe((response: any) => {this.matchHistory=response;});
-    console.log(this.matchHistory);
+    this.getGameHistory();
   }
 }
 interface matchHistoryDTO {
-  teamName: string;
-  gameDate: string;
-  gameResult: string;
-  //gameType: string;
-  opponentName: string;
+  gameId:string;
+  attackerLobbyName: string;
+  attackerCaptain: string;
+  defenderLobbyName: string;
+  defenderCaptain: string;
+  result: string;
+  date: string;
+  score: string;
+}
+interface UserStatsDTO {
+  kills: number;
+  deaths: number;
+  hits: number;
+  headshots: number;
+  win: boolean;
 }

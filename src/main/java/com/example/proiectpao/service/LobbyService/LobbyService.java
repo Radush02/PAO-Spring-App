@@ -5,6 +5,7 @@ import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.lobbyDTOs.CreateLobbyDTO;
 import com.example.proiectpao.dtos.lobbyDTOs.JoinLobbyDTO;
 import com.example.proiectpao.dtos.lobbyDTOs.KickLobbyDTO;
+import com.example.proiectpao.dtos.lobbyDTOs.LobbyDTO;
 import com.example.proiectpao.enums.Penalties;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
@@ -15,6 +16,7 @@ import com.example.proiectpao.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,41 @@ public class LobbyService implements ILobbyService {
 
     @Override
     @Async
+    public CompletableFuture<List<LobbyDTO>> getLobbies() {
+        List<Lobby> lobbies = lobbyRepository.findAll();
+        List<LobbyDTO> result = new ArrayList<>();
+        for (Lobby l : lobbies) {
+            LobbyDTO dto = new LobbyDTO(l.getLobbyLeader(), l.getLobbyName(), l.getPlayers());
+            result.add(dto);
+        }
+        return CompletableFuture.completedFuture(result);
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<String> inLobby(String username) {
+        Lobby lobby = lobbyRepository.findLobbyByPlayer(username);
+        if(lobby==null){
+            return CompletableFuture.completedFuture("");
+        }
+        return CompletableFuture.completedFuture("{\"name\": \""+lobby.getLobbyName()+"\"}");
+    }
+    @Override
+    @Async
+    public CompletableFuture<Boolean> inLobby(String lobby, String username) {
+        Lobby l = lobbyRepository.findByLobbyName(lobby);
+        if (l == null) {
+            return CompletableFuture.completedFuture(false);
+        }
+        for (String u : l.getPlayers()) {
+            if (u.equalsIgnoreCase(username)) {
+                return CompletableFuture.completedFuture(true);
+            }
+        }
+        return CompletableFuture.completedFuture(false);
+    }
+    @Override
+    @Async
     public CompletableFuture<Lobby> createLobby(CreateLobbyDTO lobbyDTO) {
         User u = userRepository.findByUsernameIgnoreCase(lobbyDTO.getUsername());
         if (u == null) {
@@ -50,17 +87,18 @@ public class LobbyService implements ILobbyService {
         if (lobbyRepository.findByLobbyLeader(u.getUsername()) != null) {
             throw new AlreadyExistsException("Userul are deja un lobby creat.");
         }
-        List<Lobby> lobbies = lobbyRepository.findAll();
-        for (Lobby lobby : lobbies) {
-            if (lobby.getPlayers().contains(u.getUsername())) {
-                throw new AlreadyExistsException("Userul este deja in alt lobby.");
-            }
+        Lobby lobby = lobbyRepository.findLobbyByPlayer(u.getUsername());
+        if (lobby != null) {
+            throw new AlreadyExistsException("Userul este deja in alt lobby.");
         }
         List<String> users = new ArrayList<>();
         users.add(u.getUsername());
         Lobby l =
                 new Lobby(
-                        String.valueOf(lobbies.size()), u.getUsername(), lobbyDTO.getName(), users);
+                        String.valueOf(lobbyRepository.count()),
+                        u.getUsername(),
+                        lobbyDTO.getName(),
+                        users);
         lobbyRepository.save(l);
         return CompletableFuture.completedFuture(l);
     }
@@ -89,11 +127,9 @@ public class LobbyService implements ILobbyService {
             throw new NonExistentException("Userul nu are lobby creat.");
         }
 
-        List<Lobby> lobbies = lobbyRepository.findAll();
-        for (Lobby lobby : lobbies) {
-            if (lobby.getPlayers().contains(invited.getUsername())) {
-                throw new AlreadyExistsException("Userul este deja in alt lobby.");
-            }
+        Lobby lobby = lobbyRepository.findLobbyByPlayer(invited.getUsername());
+        if (lobby != null) {
+            throw new AlreadyExistsException("Userul este deja in alt lobby.");
         }
         List<String> users = l.getPlayers();
         if (users.size() >= 5) {
@@ -104,7 +140,16 @@ public class LobbyService implements ILobbyService {
         lobbyRepository.save(l);
         return CompletableFuture.completedFuture(l);
     }
-
+    @Override
+    @Async
+    public CompletableFuture<List<String>> getLobbyLeaders() {
+        List<Lobby> l = lobbyRepository.getLobbyLeaders();
+        List<String> result = new ArrayList<>();
+        for (Lobby lobby : l) {
+            result.add(lobby.getLobbyLeader());
+        }
+        return CompletableFuture.completedFuture(result);
+    }
     @Override
     @Async
     public CompletableFuture<Lobby> kickFromLobby(KickLobbyDTO lobbyDTO) {
@@ -130,7 +175,7 @@ public class LobbyService implements ILobbyService {
         }
         boolean passLast = false;
         List<String> users = l.getPlayers();
-        if (leader == invited && users.size() > 1) {
+        if (Objects.equals(leader.getUsername(), invited.getUsername()) && users.size() > 1) {
             l.setLobbyLeader(users.get(1));
             passLast = true;
         }

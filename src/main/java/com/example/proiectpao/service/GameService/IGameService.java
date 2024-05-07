@@ -42,6 +42,9 @@ public interface IGameService {
     CompletableFuture<?> displayMultiplayerGame(String username);
 
     @Async
+    CompletableFuture<?> getGame(String gameId);
+
+    @Async
     CompletableFuture<?> importMultiplayerGame(String gameId, MultipartFile file)
             throws IOException;
 }

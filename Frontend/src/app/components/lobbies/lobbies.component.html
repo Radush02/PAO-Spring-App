@@ -1,1 +1,21 @@
-<app-navbar></app-navbar>
+<app-navbar/>
+<div *ngIf="isLoading">Loading...</div>
+<div *ngIf="!isLoading">
+    <input [(ngModel)]="lobbyName" placeholder="">
+    <button (click)="createLobby()">Creaza lobby</button>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div class="lobby-container">
+        <div *ngFor="let lobby of lobbies" class="lobby">
+            <h2>{{ lobby.name }}</h2>
+            <p>Capitan: {{ lobby.lobbyLeader }}</p>
+            <p>Jucatori:</p>
+            <ul>
+              <li *ngFor="let player of lobby.players">{{ player }}</li>
+            </ul>
+            <button *ngIf="currentLobby == ''" class="button join-button" (click)="joinLobby(lobby.lobbyLeader)">Intra</button>
+            <button *ngIf="currentLobby != '' && currentLobby != lobby.name" class="button joined-button">Esti in alt lobby</button>
+            <button *ngIf="currentLobby == lobby.name" class="button join-button" (click)="leaveLobby(lobby.lobbyLeader)">Paraseste Lobby</button>
+            <button *ngIf="currentLobby != lobby.name && leaders.includes(username)" class="button attack-button" (click)="attackLobby(lobby.lobbyLeader)">Ataca</button>
+        </div>
+    </div>
+</div>

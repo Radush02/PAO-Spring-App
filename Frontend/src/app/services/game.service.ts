@@ -12,4 +12,10 @@ export class GameService {
     getGames(username: string): Observable<any> {
         return this.http.get<any>(`${this.apiKey}/displayMultiplayerGame/`+username);
     }
+    attackLobby(lobbyLeader: string, username: string): Observable<string> {
+        return this.http.post<string>(`${this.apiKey}/attackTeam/${lobbyLeader}`, { username }, { responseType: 'text' as 'json' });
+      }
+    getGame(gameId: string): Observable<any> {
+        return this.http.get<any>(`${this.apiKey}/getGame/${gameId}`);
+    }
 }

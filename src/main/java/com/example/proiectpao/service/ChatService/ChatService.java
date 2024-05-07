@@ -56,9 +56,14 @@ public class ChatService implements IChatService {
     @Override
     @Async
     public CompletableFuture<List<String>> receive(String senderName, String username) {
+        System.out.println(senderName + ' ' + username);
         List<String> c = new ArrayList<>();
         List<Chat> chats = chatRepository.findAllBySenderNameAndReceiverName(senderName, username);
-        for (Chat chat : chats) c.add(chat.getMessage());
+        System.out.println(chats.size());
+        for (Chat chat : chats) {
+            System.out.println(chat.getMessage());
+            c.add(chat.getMessage());
+        }
         return CompletableFuture.completedFuture(c);
     }
 }

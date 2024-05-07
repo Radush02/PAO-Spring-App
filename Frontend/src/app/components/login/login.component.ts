@@ -31,7 +31,6 @@ export class LoginComponent implements OnInit {
       (response: userDTO) => {
         this.cookieService.set
         ('token', JSON.stringify(response), undefined, '/', undefined, false, "Strict");
-        this.errorMessage = 'Conectat';
         this.router.navigate(['/dashboard']);
       },
       (error: any) => {

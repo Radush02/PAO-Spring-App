@@ -1,0 +1,39 @@
+.lobby-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.lobby {
+    border: 1px solid #000;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.button {
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+
+.join-button {
+    background-color: #4CAF50;
+}
+
+.joined-button {
+    background-color: #f44336;
+}
+
+.button:hover {
+    background-color: #45a049;
+}
+
+.joined-button:hover {
+    background-color: #f00;
+}
