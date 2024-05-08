@@ -1,0 +1,29 @@
+<app-navbar/>
+
+<div class="profile-container">
+  <div class="profile-info">
+    <div class="profile-data">
+      <div class="profile-username">Username: {{user.username}}</div>
+      <div class="profile-email">Email: {{user.email}}</div>
+      <div class="profile-name">Nume: {{user.name}}</div>
+      <div class="profile-role">Rol: {{user.role}}</div>
+    </div>
+  </div>
+  <div class="profile-stats">
+    <div class="profile-stats-title">Stats</div>
+    <div class="profile-stats-data">
+      <div class="profile-stats-wins">Victorii: {{user.stats.wins}}</div>
+      <div class="profile-stats-losses">Infrangeri: {{user.stats.losses}}</div>
+      <div class="profile-stats-kills">Kills: {{user.stats.kills}}</div>
+      <div class="profile-stats-deaths">Deaths: {{user.stats.deaths}}</div>
+      <div class="profile-stats-hits">Hits: {{user.stats.hits}}</div>
+      <div class="profile-stats-headshots">Headshots: {{user.stats.headshots}}</div>
+      <div class="profile-stats-WR">Win Rate: {{(user.stats.wr*100).toFixed(2)}}%</div>
+      <div class="profile-stats-KDR">Kill/Death Ratio: {{(user.stats.kills/user.stats.deaths).toFixed(2)}}</div>
+      <div class="profile-stats-HSp">Headshot Percentage: {{(user.stats.headshots/user.stats.hits*100).toFixed(2)}}%</div>
+    </div>
+  <button (click)="downloadUser()">Descarca statisticile</button><br>
+  <input type="file" id="file">
+  <button (click)="uploadUser()" id="statistici">Incarca statisticile</button>
+  <div>{{errorMessage}}</div>
+  </div>

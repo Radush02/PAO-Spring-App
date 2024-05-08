@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import { CommonModule } from '@angular/common';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,NavbarComponent],
   providers: [GameService],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css'
@@ -24,11 +25,25 @@ export class GameComponent {
       this.gameId = params['gameId'];
     });
   }
-  redirectToHome() {
-    this.route.navigate(['/dashboard']);
-    }
+  downloadGame(){
+    this.gameService.exportMultiplayerGame(this.gameId).subscribe(response=>{
+      const contentDispositionHeader = response.headers.get('Content-Disposition');
+      const filename = contentDispositionHeader
+  ? contentDispositionHeader.split(';')[1].trim().split('=')[1].replace(/"/g, '')
+  : 'contact_admin_issue.sb';
+  const blob = new Blob([response.body], { type: 'application/json' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+    })
+  }
   async getGame(){
-   this.match = await this.gameService.getGame(this.gameId).toPromise();
+    this.match = await this.gameService.getGame(this.gameId).toPromise();
     this.winnerTeam = this.match.result === 'Win' ? this.match.attackerLobbyName : this.match.defenderLobbyName;
     this.loserTeam = this.match.result === 'Win' ? this.match.defenderLobbyName : this.match.attackerLobbyName;
    let userStats = this.match.userStats;

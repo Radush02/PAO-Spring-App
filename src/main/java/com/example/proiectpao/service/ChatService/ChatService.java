@@ -3,6 +3,7 @@ package com.example.proiectpao.service.ChatService;
 import com.example.proiectpao.collection.Chat;
 import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.ChatDTO;
+import com.example.proiectpao.dtos.MessageDTO;
 import com.example.proiectpao.enums.Penalties;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
@@ -31,7 +32,7 @@ public class ChatService implements IChatService {
 
     @Override
     @Async
-    public void send(ChatDTO chat, String receiver) {
+    public CompletableFuture<Boolean> send(ChatDTO chat, String receiver) {
         User sender = userRepository.findByUsernameIgnoreCase(chat.getSenderName());
         User receiverUser = userRepository.findByUsernameIgnoreCase(receiver);
         if (sender == null) throw new NonExistentException("Nu ai cont.");
@@ -49,20 +50,20 @@ public class ChatService implements IChatService {
         c.setMessage(chat.getMessage());
         c.setSenderName(chat.getSenderName());
         c.setReceiverName(userRepository.findByUsernameIgnoreCase(receiver).getUsername());
-
+        c.setDate(new Date());
         chatRepository.save(c);
+        return CompletableFuture.completedFuture(true);
     }
 
     @Override
     @Async
-    public CompletableFuture<List<String>> receive(String senderName, String username) {
-        System.out.println(senderName + ' ' + username);
-        List<String> c = new ArrayList<>();
+    public CompletableFuture<List<MessageDTO>> receive(String senderName, String username) {
+        List<MessageDTO> c = new ArrayList<>();
         List<Chat> chats = chatRepository.findAllBySenderNameAndReceiverName(senderName, username);
-        System.out.println(chats.size());
+        chats.addAll(chatRepository.findAllBySenderNameAndReceiverName(username, senderName));
+        chats.sort(Comparator.comparing(Chat::getDate));
         for (Chat chat : chats) {
-            System.out.println(chat.getMessage());
-            c.add(chat.getMessage());
+            c.add(new MessageDTO(chat.getMessage(), chat.getSenderName(), chat.getDate()));
         }
         return CompletableFuture.completedFuture(c);
     }

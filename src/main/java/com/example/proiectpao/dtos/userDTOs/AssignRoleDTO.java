@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class AssignRoleDTO {
-    public String possibleAdminID;
+    public String admin;
     public String username;
     public Role role;
 }

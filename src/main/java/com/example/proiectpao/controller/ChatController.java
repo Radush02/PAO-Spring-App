@@ -1,6 +1,9 @@
 package com.example.proiectpao.controller;
 
 import com.example.proiectpao.dtos.ChatDTO;
+import com.example.proiectpao.dtos.MessageDTO;
+import com.example.proiectpao.exceptions.NonExistentException;
+import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.service.ChatService.IChatService;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -18,18 +21,33 @@ public class ChatController {
 
     @PostMapping("/send/{receiver}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Boolean> save(
-            @RequestBody ChatDTO chatDTO, @PathVariable String receiver) {
-        chatService.send(chatDTO, receiver);
-        return new ResponseEntity<>(true, HttpStatus.CREATED);
+    public ResponseEntity<?> save(@RequestBody ChatDTO chatDTO, @PathVariable String receiver) {
+        try {
+            CompletableFuture<Boolean> res = chatService.send(chatDTO, receiver);
+            return new ResponseEntity<>(res.get(), HttpStatus.CREATED);
+        } catch (UnauthorizedActionException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @GetMapping("/receive/{username}")
+    @GetMapping("/receive")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<String>> receive(
-            @RequestBody String senderName, @PathVariable String username)
+    public ResponseEntity<?> receive(@RequestParam String senderName, @RequestParam String username)
             throws ExecutionException, InterruptedException {
-        CompletableFuture<List<String>> chatDTOs = chatService.receive(senderName, username);
-        return new ResponseEntity<>(chatDTOs.get(), HttpStatus.OK);
+        try {
+            CompletableFuture<List<MessageDTO>> chatDTOs =
+                    chatService.receive(senderName, username);
+            return new ResponseEntity<>(chatDTOs.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (UnauthorizedActionException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

@@ -52,11 +52,12 @@ public class LobbyService implements ILobbyService {
     @Async
     public CompletableFuture<String> inLobby(String username) {
         Lobby lobby = lobbyRepository.findLobbyByPlayer(username);
-        if(lobby==null){
+        if (lobby == null) {
             return CompletableFuture.completedFuture("");
         }
-        return CompletableFuture.completedFuture("{\"name\": \""+lobby.getLobbyName()+"\"}");
+        return CompletableFuture.completedFuture("{\"name\": \"" + lobby.getLobbyName() + "\"}");
     }
+
     @Override
     @Async
     public CompletableFuture<Boolean> inLobby(String lobby, String username) {
@@ -71,6 +72,7 @@ public class LobbyService implements ILobbyService {
         }
         return CompletableFuture.completedFuture(false);
     }
+
     @Override
     @Async
     public CompletableFuture<Lobby> createLobby(CreateLobbyDTO lobbyDTO) {
@@ -140,6 +142,7 @@ public class LobbyService implements ILobbyService {
         lobbyRepository.save(l);
         return CompletableFuture.completedFuture(l);
     }
+
     @Override
     @Async
     public CompletableFuture<List<String>> getLobbyLeaders() {
@@ -150,6 +153,7 @@ public class LobbyService implements ILobbyService {
         }
         return CompletableFuture.completedFuture(result);
     }
+
     @Override
     @Async
     public CompletableFuture<Lobby> kickFromLobby(KickLobbyDTO lobbyDTO) {

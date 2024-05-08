@@ -30,5 +30,22 @@ export class UserService {
   logout():any{
     this.cookieService.delete('token');
     return null;
-  } 
+  }
+  downloadFile(username:string): Observable<any> {
+    return this.http.get<any>(`${this.apiKey}/downloadUser/${username}`,  {
+      responseType: 'blob' as 'json',
+      observe: 'response'
+    });
+  }
+  assignRole(info:any): Observable<any> {
+    return this.http.post<any>(`${this.apiKey}/assignRole`,info);
+}
+  uploadFile(file: File,username:string): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.apiKey}/uploadStats/${username}`, formData);
+  }
+  displayUser(username:string):Observable<any>{
+    return this.http.get<any>(`${this.apiKey}/displayUser/${username}`);
+  }
 }

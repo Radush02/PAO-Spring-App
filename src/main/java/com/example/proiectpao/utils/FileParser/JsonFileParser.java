@@ -1,7 +1,9 @@
 package com.example.proiectpao.utils.FileParser;
 
 import com.amazonaws.services.s3.model.S3Object;
+import com.example.proiectpao.collection.Stats;
 import com.example.proiectpao.collection.User;
+import com.example.proiectpao.dtos.userDTOs.ExportDTO;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.example.proiectpao.utils.RandomGenerator.RandomNameGenerator;
@@ -18,34 +20,38 @@ public class JsonFileParser extends FileParser {
     @Override
     public boolean read(Object user, MultipartFile file, S3Service s3) {
         try {
-            /*
-             * s3.getfile()
-             * Arunca com.amazonaws.SdkClientException daca nu gaseste fisierul
-             * Descoperit prin trial and error :)
-             */
             User k = (User) user;
             InputStream is = file.getInputStream();
             S3Object s3obj = s3.getFile(file.getOriginalFilename());
             String json = IOUtils.toString(is, StandardCharsets.UTF_8);
             String s3Json = IOUtils.toString(s3obj.getObjectContent(), StandardCharsets.UTF_8);
             if (!json.equals(s3Json)) {
-                //                System.out.println(json);
-                //                System.out.println(s3Json);
+                System.out.println(json);
+                System.out.println(s3Json);
                 //                System.out.println("Continutul back-up-ului a fost modificat!");
                 throw new NonExistentException("Continutul back-up-ului a fost modificat!");
             }
-            User u = new Gson().fromJson(json, User.class);
-            if (!Objects.equals(u.getName(), k.getName())) {
+            ExportDTO u = new Gson().fromJson(json, ExportDTO.class);
+            if (!Objects.equals(u.getUserDTO().getName(), k.getName())) {
+                System.out.println(u.getUserDTO().getName() + " " + k.getName());
                 throw new NonExistentException("Numele userului nu corespunde cu cel din fisier");
             }
-            k.setStats(u.getStats());
+            k.setStats(
+                    Stats.builder()
+                            .kills(u.getUserDTO().getStats().getKills())
+                            .deaths(u.getUserDTO().getStats().getDeaths())
+                            .wins(u.getUserDTO().getStats().getWins())
+                            .losses(u.getUserDTO().getStats().getLosses())
+                            .headshots(u.getUserDTO().getStats().getHeadshots())
+                            .hits(u.getUserDTO().getStats().getHits())
+                            .build());
             k.setGameIDs(u.getGameIDs());
-            k.setName(u.getName());
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         } catch (com.amazonaws.SdkClientException e) {
-            throw new NonExistentException("Fisierul trimis nu exista in baza noastra de date");
+            System.err.println(e.getMessage());
+            throw new NonExistentException("Eroare AWS");
         }
         return true;
     }

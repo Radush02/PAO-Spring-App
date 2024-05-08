@@ -18,4 +18,10 @@ export class GameService {
     getGame(gameId: string): Observable<any> {
         return this.http.get<any>(`${this.apiKey}/getGame/${gameId}`);
     }
+    exportMultiplayerGame(gameId:string):Observable<any>{
+        return this.http.get<any>(`${this.apiKey}/exportMultiplayerGame/${gameId}`,  {
+            observe: 'response',
+            responseType: 'blob' as 'json'
+          });
+    }
 }

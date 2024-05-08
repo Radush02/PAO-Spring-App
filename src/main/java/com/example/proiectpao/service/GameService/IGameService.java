@@ -1,8 +1,10 @@
 package com.example.proiectpao.service.GameService;
 
 import com.example.proiectpao.enums.Results;
+import com.example.proiectpao.utils.Pair;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,7 +38,7 @@ public interface IGameService {
     CompletableFuture<?> attackTeam(String attackerCaptain, String defenderCaptain);
 
     @Async
-    CompletableFuture<?> exportMultiplayerGame(String gameId);
+    CompletableFuture<Pair<Resource, String>> exportMultiplayerGame(String gameId);
 
     @Async
     CompletableFuture<?> displayMultiplayerGame(String username);

@@ -1,0 +1,60 @@
+<app-navbar/>
+<form [formGroup]="punishForm">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" formControlName="username" required>
+    </div>
+    <div  style="display:none">
+        <label for="admin">Admin:</label>
+        <input type="text" id="admin" formControlName="admin" [disabled]="true">
+    </div>
+    <div>
+        <label for="reason">Motiv:</label>
+        <input type="text" id="reason" formControlName="reason" required>
+    </div>
+    <div>
+        <label for="expiryDate">Data expirarii:</label>
+        <input type="datetime-local" id="expiryDate" formControlName="expiryDate" required>
+    </div>
+    <div>
+        <button (click)="ban()">Ban</button>
+        <button (click)="mute()">Mute</button>
+        <button (click)="warn()">Warn</button>
+    </div>
+</form>
+
+<form [formGroup]="unpunishForm">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" formControlName="user" required>
+    </div>
+    <div  style="display:none">
+        <label for="admin">Admin:</label>
+        <input type="text" id="admin" formControlName="admin" [disabled]="true">
+    </div>
+    <div>
+        <button (click)="unban()">Unban</button>
+        <button (click)="unmute()">Unmute</button>
+    </div>
+</form>
+
+<form [formGroup]="assignRoleForm">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" formControlName="username" required>
+    </div>
+    <div style="display:none">
+        <label for="admin">Admin:</label>
+        <input type="text" id="admin" formControlName="admin" [disabled]="true">
+    </div>
+    <div>
+        <label for="role">Rol:</label>
+        <select id="role" formControlName="role" required>
+            <option value="User">User</option>
+            <option value="Moderator">Moderator</option>
+            <option value="Admin">Admin</option>
+        </select>
+        </div>
+        <button (click)="assignRole()">Atribuie rol</button>
+</form>
+<button (click)="getLogs()">Export admin logs</button>

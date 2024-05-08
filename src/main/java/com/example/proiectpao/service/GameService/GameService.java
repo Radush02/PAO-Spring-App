@@ -9,10 +9,12 @@ import com.example.proiectpao.repository.*;
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.example.proiectpao.utils.FileParser.FileParser;
 import com.example.proiectpao.utils.FileParser.ScoreboardFileParser;
+import com.example.proiectpao.utils.Pair;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -152,7 +154,7 @@ public class GameService implements IGameService {
             throw new NonExistentException(
                     "Echipa lui " + defender.getUsername() + " nu are 5 jucatori!");
         }
-        if(lobbyAttacker.getLobbyName().equals(lobbyDefender.getLobbyName())){
+        if (lobbyAttacker.getLobbyName().equals(lobbyDefender.getLobbyName())) {
             throw new UnauthorizedActionException("Nu te poti ataca!");
         }
 
@@ -237,12 +239,12 @@ public class GameService implements IGameService {
 
         if (attackerRounds > defenderRounds) {
             addGameResult(lobbyAttacker, lobbyDefender, multiplayerGame);
-            for(User u: attackerArray){
+            for (User u : attackerArray) {
                 gameStats.get(u.getUsername()).setWin(true);
             }
         } else {
             addGameResult(lobbyDefender, lobbyAttacker, multiplayerGame);
-            for(User u: defenderArray){
+            for (User u : defenderArray) {
                 gameStats.get(u.getUsername()).setWin(true);
             }
         }
@@ -251,8 +253,9 @@ public class GameService implements IGameService {
         return CompletableFuture.completedFuture(multiplayerGame.getGameId());
     }
 
-    private void checkPunish(Lobby lobby, List<User> users, HashMap<String, MultiplayerUserStats> gameStats) {
-        for (User u: users) {
+    private void checkPunish(
+            Lobby lobby, List<User> users, HashMap<String, MultiplayerUserStats> gameStats) {
+        for (User u : users) {
 
             if (!punishRepository
                     .findAllByUserIDAndSanctionAndExpiryDateIsAfter(
@@ -268,38 +271,52 @@ public class GameService implements IGameService {
                             u.getStats().getKills(),
                             u.getStats().getDeaths(),
                             u.getStats().getHeadshots(),
-                            u.getStats().getHits(),false));
+                            u.getStats().getHits(),
+                            false));
         }
     }
 
-    private void addStats(List<User> defenderArray, HashMap<String, MultiplayerUserStats> gameStats) {
-        for(User u: defenderArray){
+    private void addStats(
+            List<User> defenderArray, HashMap<String, MultiplayerUserStats> gameStats) {
+        for (User u : defenderArray) {
             gameStats.put(
                     u.getUsername(),
                     MultiplayerUserStats.builder()
                             .kills(
                                     u.getStats().getKills()
                                             - gameStats.get(u.getUsername()).getKills())
-                            .hits(
-                                    u.getStats().getHits()
-                                            - gameStats.get(u.getUsername()).getHits())
+                            .hits(u.getStats().getHits() - gameStats.get(u.getUsername()).getHits())
                             .headshots(
                                     u.getStats().getHeadshots()
                                             - gameStats.get(u.getUsername()).getHeadshots())
                             .deaths(
                                     u.getStats().getDeaths()
                                             - gameStats.get(u.getUsername()).getDeaths())
-                            .build()
-            );
-            System.out.println(u.getUsername() + " " + u.getStats().getKills() + " " + u.getStats().getDeaths()+ " " + u.getStats().getHits()+ " " + u.getStats().getHeadshots());
-            System.out.println(gameStats.get(u.getUsername()).getKills() + " " + gameStats.get(u.getUsername()).getDeaths()+ " " + gameStats.get(u.getUsername()).getHits()+ " " + gameStats.get(u.getUsername()).getHeadshots());
+                            .build());
+            System.out.println(
+                    u.getUsername()
+                            + " "
+                            + u.getStats().getKills()
+                            + " "
+                            + u.getStats().getDeaths()
+                            + " "
+                            + u.getStats().getHits()
+                            + " "
+                            + u.getStats().getHeadshots());
+            System.out.println(
+                    gameStats.get(u.getUsername()).getKills()
+                            + " "
+                            + gameStats.get(u.getUsername()).getDeaths()
+                            + " "
+                            + gameStats.get(u.getUsername()).getHits()
+                            + " "
+                            + gameStats.get(u.getUsername()).getHeadshots());
         }
-
     }
 
     @Override
     @Async
-    public CompletableFuture<?> exportMultiplayerGame(String gameId) {
+    public CompletableFuture<Pair<Resource, String>> exportMultiplayerGame(String gameId) {
         MultiplayerGame multiplayerGame = multiplayerGameRepository.findByGameId(gameId);
         if (multiplayerGame == null) {
             throw new NonExistentException("Meciul nu exista");
@@ -308,8 +325,10 @@ public class GameService implements IGameService {
         try {
             String fileName = scoreboardFileParser.write(multiplayerGame, s3Service);
             return CompletableFuture.completedFuture(
-                    new InputStreamResource(
-                            s3Service.getFile(fileName + ".sb").getObjectContent()));
+                    new Pair<>(
+                            new InputStreamResource(
+                                    s3Service.getFile(fileName + ".sb").getObjectContent()),
+                            fileName + ".sb"));
 
         } catch (Exception e) {
             throw new NonExistentException("Eroare la scrierea fisierului");
@@ -333,15 +352,17 @@ public class GameService implements IGameService {
         }
         return CompletableFuture.completedFuture(multiplayerGames);
     }
+
     @Override
     @Async
-    public CompletableFuture<?> getGame(String gameId){
+    public CompletableFuture<?> getGame(String gameId) {
         MultiplayerGame multiplayerGame = multiplayerGameRepository.findByGameId(gameId);
-        if(multiplayerGame == null){
+        if (multiplayerGame == null) {
             throw new NonExistentException("Meciul nu exista");
         }
         return CompletableFuture.completedFuture(multiplayerGame);
     }
+
     @Override
     @Async
     public CompletableFuture<?> importMultiplayerGame(String gameId, MultipartFile file)
@@ -402,6 +423,7 @@ public class GameService implements IGameService {
             userRepository.save(u);
         }
     }
+
     private int attackHelper(
             User attacker,
             User defender,

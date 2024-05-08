@@ -1,21 +1,29 @@
 package com.example.proiectpao.service.PunishService;
 
+import static com.example.proiectpao.enums.Role.Admin;
+
 import com.example.proiectpao.collection.Punish;
 import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.PunishDTO;
+import com.example.proiectpao.dtos.userDTOs.AssignRoleDTO;
 import com.example.proiectpao.enums.Penalties;
 import com.example.proiectpao.enums.Role;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.repository.PunishRepository;
 import com.example.proiectpao.repository.UserRepository;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +50,7 @@ public class PunishService implements IPunishService {
 
         Punish p =
                 Punish.builder()
+                        .id(String.valueOf(punishRepository.count()))
                         .userID(u.getUserId())
                         .adminID(a.getUserId())
                         .expiryDate(mute.getExpiryDate())
@@ -65,6 +74,7 @@ public class PunishService implements IPunishService {
         }
         Punish p =
                 Punish.builder()
+                        .id(String.valueOf(punishRepository.count()))
                         .userID(u.getUserId())
                         .adminID(a.getUserId())
                         .reason(warn.getReason())
@@ -72,6 +82,8 @@ public class PunishService implements IPunishService {
                         .build();
         trackAction("a acordat warn lui ", a, u, null);
         if (punishRepository.findByUserIDAndSanction(u.getUserId(), Penalties.Warn) != null) {
+            punishRepository.delete(
+                    punishRepository.findByUserIDAndSanction(u.getUserId(), Penalties.Warn));
             LocalDate now = LocalDate.now();
             LocalDate expiry = now.plusDays(3);
             ban(
@@ -80,9 +92,35 @@ public class PunishService implements IPunishService {
                             warn.getAdmin(),
                             "2/2 warn",
                             Date.from(expiry.atStartOfDay(ZoneId.systemDefault()).toInstant())));
-            punishRepository.delete(
-                    punishRepository.findByUserIDAndSanction(u.getUserId(), Penalties.Warn));
+
         } else punishRepository.save(p);
+        return CompletableFuture.completedFuture(true);
+    }
+
+    /**
+     * Metoda assignRole atribuie un rol unui utilizator.
+     * @param userRoleDTO (DTO-ul ce contine username-ul si rolul atribuit)
+     * @return true
+     */
+    @Override
+    @Async
+    public CompletableFuture<Boolean> assignRole(AssignRoleDTO userRoleDTO) {
+        User k = userRepository.findByUsernameIgnoreCase(userRoleDTO.getUsername());
+        User adm = userRepository.findByUsernameIgnoreCase(userRoleDTO.getAdmin());
+        if (k == null || adm == null) {
+            throw new NonExistentException("Userul nu exista.");
+        }
+        if (adm.getRole() != Admin) {
+            throw new NonExistentException("Adminul nu exista.");
+        }
+        try {
+            k.setRole(userRoleDTO.getRole());
+        } catch (IllegalArgumentException e) {
+            throw new NonExistentException("Rolul nu exista.");
+        }
+        System.out.println(userRoleDTO.getRole());
+        trackAction("a atribuit rolul de " + userRoleDTO.getRole() + " lui ", adm, k, null);
+        userRepository.save(k);
         return CompletableFuture.completedFuture(true);
     }
 
@@ -97,6 +135,7 @@ public class PunishService implements IPunishService {
         }
         Punish p =
                 Punish.builder()
+                        .id(String.valueOf(punishRepository.count()))
                         .userID(u.getUserId())
                         .adminID(a.getUserId())
                         .expiryDate(ban.getExpiryDate())
@@ -139,6 +178,7 @@ public class PunishService implements IPunishService {
         else if (a.getRole() != Role.Admin) {
             throw new UnauthorizedActionException("Nu ai suficiente permisiuni.");
         }
+        Map<String, String> response = new HashMap<>();
         List<Punish> pnsh =
                 punishRepository.findAllByUserIDAndSanctionAndExpiryDateIsAfter(
                         u.getUserId(), Penalties.Ban, new Date());
@@ -147,10 +187,31 @@ public class PunishService implements IPunishService {
             trackAction("a debanat pe ", a, u, null);
         }
         if (!pnsh.isEmpty()) {
-            return CompletableFuture.completedFuture("Debanat");
+            response.put("message", "A primit unban");
+            return CompletableFuture.completedFuture(response);
         }
         trackAction("a incercat sa debaneze pe ", a, u, null);
-        return CompletableFuture.completedFuture("Nu e banat");
+        response.put("message", "Nu e banat");
+        return CompletableFuture.completedFuture(response);
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<Resource> getLogs(String admin) {
+        User a = userRepository.findByUsernameIgnoreCase(admin);
+        if (a == null) throw new NonExistentException("Adminul nu exista.");
+        else if (a.getRole() == Role.User) {
+            throw new UnauthorizedActionException("Nu ai suficiente permisiuni.");
+        }
+        try {
+            return CompletableFuture.completedFuture(
+                    new InputStreamResource(
+                            new FileInputStream(
+                                    "src/main/java/com/example/proiectpao/logs/adminlog.csv")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -162,6 +223,7 @@ public class PunishService implements IPunishService {
         else if (a.getRole() != Role.Admin) {
             throw new UnauthorizedActionException("Nu ai suficiente permisiuni.");
         }
+        Map<String, String> response = new HashMap<>();
         List<Punish> pnsh =
                 punishRepository.findAllByUserIDAndSanctionAndExpiryDateIsAfter(
                         u.getUserId(), Penalties.Mute, new Date());
@@ -170,9 +232,11 @@ public class PunishService implements IPunishService {
             trackAction("a dat unmute lui ", a, u, null);
         }
         if (!pnsh.isEmpty()) {
-            return CompletableFuture.completedFuture("A primit unmute");
+            response.put("message", "A primit unmute");
+            return CompletableFuture.completedFuture(response);
         }
         trackAction("a incercat sa dea unmute ", a, u, null);
-        return CompletableFuture.completedFuture("Nu e muted");
+        response.put("message", "Nu e muted");
+        return CompletableFuture.completedFuture(response);
     }
 }

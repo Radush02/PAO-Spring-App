@@ -15,6 +15,7 @@ import com.example.proiectpao.repository.UserRepository;
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.example.proiectpao.utils.FileParser.FileParser;
 import com.example.proiectpao.utils.FileParser.JsonFileParser;
+import com.example.proiectpao.utils.Pair;
 import com.google.gson.Gson;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -192,48 +193,29 @@ public class UserService implements IUserService {
     }
 
     /**
-     * Metoda assignRole atribuie un rol unui utilizator.
-     * @param userRoleDTO (DTO-ul ce contine username-ul si rolul atribuit)
-     * @return Utilizatorul cu rolul atribuit.
-     */
-    @Override
-    @Async
-    public CompletableFuture<UserDTO> assignRole(AssignRoleDTO userRoleDTO) {
-        User k = userRepository.findByUsernameIgnoreCase(userRoleDTO.getUsername());
-        User adm = userRepository.findById(userRoleDTO.getPossibleAdminID()).orElse(null);
-        if (k == null || adm == null) {
-            throw new NonExistentException("Userul nu exista.");
-        }
-        if (adm.getRole() != Admin) {
-            throw new NonExistentException("Adminul nu exista.");
-        }
-        try {
-            k.setRole(userRoleDTO.getRole());
-        } catch (IllegalArgumentException e) {
-            throw new NonExistentException("Rolul nu exista.");
-        }
-        userRepository.save(k);
-        return CompletableFuture.completedFuture(configureDTO(k));
-    }
-
-    /**
      * Metoda downloadUser returneaza un fisier JSON cu informatiile despre un utilizator.
      * @param username numele utilizatorului
-     * @return - Fisierul JSON.
+     * @return - Un pair ce contine fisierul JSON si numele acestuia
      * @see <a href="https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f">Object Storage with Spring Boot and AWS S3</a>
      */
     @Override
     @Async
-    public CompletableFuture<Resource> downloadUser(String username) throws IOException {
+    public CompletableFuture<Pair<Resource, String>> downloadUser(String username)
+            throws IOException {
         User k = userRepository.findByUsernameIgnoreCase(username);
         if (k == null) {
             throw new NonExistentException("Userul nu exista.");
         }
-        UserDTO u = configureDTO(k);
-        String userJson = new Gson().toJson(u);
+        ExportDTO e = new ExportDTO();
+        e.setUserDTO(configureDTO(k));
+        e.setGameIDs(k.getGameIDs());
+        String userJson = new Gson().toJson(e);
         String nume = jsonFileParser.write(userJson, s3Service);
         return CompletableFuture.completedFuture(
-                new InputStreamResource(s3Service.getFile(nume + ".json").getObjectContent()));
+                new Pair<>(
+                        new InputStreamResource(
+                                s3Service.getFile(nume + ".json").getObjectContent()),
+                        nume + ".json"));
     }
 
     /**

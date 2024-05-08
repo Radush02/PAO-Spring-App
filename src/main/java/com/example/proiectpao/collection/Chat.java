@@ -1,7 +1,6 @@
 package com.example.proiectpao.collection;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.sql.Timestamp;
 import java.util.Date;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -14,14 +13,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class Chat {
     @Id private String chatId;
-    private Timestamp date;
+    private Date date;
     private String message;
     private String senderName;
     private String receiverName;
-
-    public Chat() {
-        Date d = new Timestamp(new Date().getTime());
-    }
 }

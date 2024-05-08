@@ -63,6 +63,7 @@ public class LobbyController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping("/inLobby/{lobby}/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> inLobby(@PathVariable String lobby, @PathVariable String username)
@@ -74,6 +75,7 @@ public class LobbyController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping("/getLobbies")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getLobbies() throws ExecutionException, InterruptedException {

@@ -1,1 +1,18 @@
-<p>chats works!</p>
+<app-navbar/>
+<div *ngIf="!loaded">Loading...</div>
+<div *ngIf="loaded">
+    <div class="chat-container">
+
+  <div class="chat" #chatScroll>
+    <div *ngFor="let message of messages" [ngClass]="{'message-sent': message.senderName === user, 'message-received': message.senderName !== user}">
+      <p>{{message.senderName}}: {{message.message}}</p>
+      {{message.date}}
+    </div>
+  </div>
+  </div>
+  <div class="input">
+    <form [formGroup]="chatForm">
+        <input type="text" formControlName="message" placeholder="Message">
+    </form>
+    <button (click)="send()">Send</button>
+  </div>

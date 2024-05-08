@@ -1,10 +1,10 @@
 package com.example.proiectpao.service.UserService;
 
 import com.example.proiectpao.collection.User;
-import com.example.proiectpao.dtos.userDTOs.AssignRoleDTO;
 import com.example.proiectpao.dtos.userDTOs.UserDTO;
 import com.example.proiectpao.dtos.userDTOs.UserLoginDTO;
 import com.example.proiectpao.dtos.userDTOs.UserRegisterDTO;
+import com.example.proiectpao.utils.Pair;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.core.io.Resource;
@@ -37,21 +37,13 @@ public interface IUserService {
     CompletableFuture<UserDTO> displayUser(String username);
 
     /**
-     * Metoda assignRole atribuie un rol unui utilizator.
-     * @param userRoleDTO (DTO-ul ce contine username-ul si rolul atribuit)
-     * @return Utilizatorul cu rolul atribuit.
-     */
-    @Async
-    CompletableFuture<UserDTO> assignRole(AssignRoleDTO userRoleDTO);
-
-    /**
      * Metoda downloadUser descarca un fisier JSON cu informatiile despre un utilizator.
      * @param username numele utilizatorului
-     * @return  Fisierul JSON.
+     * @return  Un pair ce contine fisierul efectiv si numele acestuia.
      * @see <a href=" https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f"></a>
      */
     @Async
-    CompletableFuture<Resource> downloadUser(String username) throws IOException;
+    CompletableFuture<Pair<Resource, String>> downloadUser(String username) throws IOException;
 
     /**
      * Metoda uploadStats incarca statisticile unui utilizator.

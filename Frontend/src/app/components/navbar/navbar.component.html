@@ -1,8 +1,9 @@
 <nav class="navbar">
     <div class="left-buttons">
       <button (click)="dashboard()">Home</button>
-      <button (click)="lobbies()">Lobbies</button>
-      <button (click)="messages()">Messages</button>
+      <button (click)="lobbies()">Lobby-uri</button>
+      <button (click)="messages()">Mesaje</button>
+      <button *ngIf="role !== 'User'" (click)="adminPanel()">Admin Panel</button>
     </div>
     <div class="right-buttons">
       <button (click)="profile()">{{username}}</button>

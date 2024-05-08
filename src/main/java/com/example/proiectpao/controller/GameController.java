@@ -5,10 +5,14 @@ import com.example.proiectpao.enums.Results;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.service.GameService.IGameService;
+import com.example.proiectpao.utils.Pair;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +40,7 @@ public class GameController {
         }
         return new ResponseEntity<>(results.get(), HttpStatus.OK);
     }
+
     @PostMapping("/attackTeam/{opponent}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> attackTeam(
@@ -55,16 +60,28 @@ public class GameController {
     }
 
     @GetMapping("/exportMultiplayerGame/{gameId}")
+    @CrossOrigin(
+            origins = "http://localhost:4200",
+            allowedHeaders = "Content-Disposition",
+            exposedHeaders = "Content-Disposition")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> exportMultiplayerGame(@PathVariable String gameId)
             throws ExecutionException, InterruptedException {
         try {
-            CompletableFuture<?> results = gameService.exportMultiplayerGame(gameId);
-            return new ResponseEntity<>(results.get(), HttpStatus.OK);
+            CompletableFuture<Pair<Resource, String>> results =
+                    gameService.exportMultiplayerGame(gameId);
+            HttpHeaders headers = new HttpHeaders();
+            ContentDisposition contentDisposition =
+                    ContentDisposition.builder("attachment")
+                            .filename(results.get().getSecond())
+                            .build();
+            headers.setContentDisposition(contentDisposition);
+            return ResponseEntity.ok().headers(headers).body(results.get().getFirst());
         } catch (NonExistentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
+
     @GetMapping("/getGame/{gameId}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getGame(@PathVariable String gameId)
@@ -76,6 +93,7 @@ public class GameController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
+
     @GetMapping("displayMultiplayerGame/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> displayMultiplayerGame(@PathVariable String username)

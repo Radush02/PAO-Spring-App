@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { Router, RouterOutlet } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet,CommonModule],
   providers: [UserService],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
@@ -14,6 +15,7 @@ import { CookieService } from 'ngx-cookie-service';
 export class NavbarComponent implements OnInit{
   constructor(private userService:UserService,private router:Router,private cookieService:CookieService) { }
   username:string="";
+  role:string="";
   logout(){
     this.userService.logout();
     this.router.navigate(['/login']);
@@ -33,7 +35,11 @@ export class NavbarComponent implements OnInit{
   profile(){
     this.router.navigate(['/profile']);
   }
+  adminPanel(){
+    this.router.navigate(['/adminPanel']);
+  }
   ngOnInit(){
     this.username = JSON.parse(this.cookieService.get('token')).username;
+    this.role = JSON.parse(this.cookieService.get('token')).role;
   }
 }
