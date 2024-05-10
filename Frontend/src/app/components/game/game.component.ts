@@ -21,8 +21,8 @@ export class GameComponent {
   usernames:string[]=[];
   winnerTeam:string='';
   loserTeam:string='';
-  wonrounds=0;
-  lostrounds=0;
+  wonrounds='';
+  lostrounds='';
   constructor(private route:Router, private params: ActivatedRoute,private gameService: GameService, private cookieService: CookieService) {
     this.params.queryParams.subscribe(params => {
       this.gameId = params['gameId'];
@@ -57,6 +57,8 @@ export class GameComponent {
     await this.getGame();
     this.isLoading=false;
     this.role = JSON.parse(this.cookieService.get('token')).role;
+    this.wonrounds = this.match.score.split('-')[this.match.result==='Win' ? 0 : 1];
+    this.lostrounds = this.match.score.split('-')[this.match.result==='Win' ? 1 : 0];
   }
 }
 interface matchHistoryDTO {

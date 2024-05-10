@@ -21,4 +21,12 @@ export class ChatService {
             observe: 'response'
           });
     }
+    import(data:any): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', data.file);
+        formData.append('requester', data.requester);
+        formData.append('sender', data.sender);
+        formData.append('receiver', data.receiver);
+        return this.http.post<any>(`${this.apiKey}/upload`, formData);
+      }
 }

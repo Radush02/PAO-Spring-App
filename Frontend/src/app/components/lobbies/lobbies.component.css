@@ -8,6 +8,10 @@
     padding: 10px;
     box-sizing: border-box;
     max-width: 400px;
+    transition-duration: 0.5s;
+}
+.lobby:hover{
+    background-color: #676767;
 }
 .button {
     border: none;

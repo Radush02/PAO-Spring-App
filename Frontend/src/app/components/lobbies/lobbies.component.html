@@ -2,6 +2,7 @@
 <div *ngIf="isLoading">Loading...</div>
 <div *ngIf="!isLoading">
     <div class="create-lobby-container">
+        <h2 style="color:#000">Creeaza lobby</h2>
         <input [(ngModel)]="lobbyName" placeholder="Introdu numele">
         <button (click)="createLobby()">Creeaza lobby</button>
     </div>

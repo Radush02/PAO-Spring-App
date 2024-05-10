@@ -42,8 +42,8 @@ public class LobbyController {
 
     /**
      * API Post pentru a crea un lobby.
-     * @param lobbyDTO
-     * @return
+     * @param lobbyDTO (DTO-ul ce contine numele lobby-ului si numele liderului)
+     * @return Lobby-ul creat sau mesajul erorii.
      */
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
@@ -60,10 +60,15 @@ public class LobbyController {
         }
     }
 
+    /**
+     * API GET pentru a verifica daca un utilizator este in lobby.
+     * @param username numele utilizatorului
+     * @return true sau mesajul erorii.
+     */
     @GetMapping("/inLobby/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> inLobby(@PathVariable String username)
-            throws ExecutionException, InterruptedException {
+             {
         try {
             CompletableFuture<String> l = lobbyService.inLobby(username);
             return new ResponseEntity<>(l.get(), HttpStatus.OK);
@@ -72,10 +77,15 @@ public class LobbyController {
         }
     }
 
+    /**
+     * API GET pentru a verifica daca un utilizator este intr-un anumit lobby.
+     * @param lobby numele lobby-ului
+     * @param username numele utilizatorului
+     * @return true sau mesajul erorii.
+     */
     @GetMapping("/inLobby/{lobby}/{username}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> inLobby(@PathVariable String lobby, @PathVariable String username)
-            throws ExecutionException, InterruptedException {
+    public ResponseEntity<?> inLobby(@PathVariable String lobby, @PathVariable String username){
         try {
             CompletableFuture<Boolean> l = lobbyService.inLobby(lobby, username);
             return new ResponseEntity<>(l.get(), HttpStatus.OK);
@@ -84,9 +94,13 @@ public class LobbyController {
         }
     }
 
+    /**
+     * API GET pentru a prelua lobby-urile.
+     * @return Lista cu lobby-urile sau mesajul erorii.
+     */
     @GetMapping("/getLobbies")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> getLobbies() throws ExecutionException, InterruptedException {
+    public ResponseEntity<?> getLobbies(){
         try {
             CompletableFuture<?> l = lobbyService.getLobbies();
             return new ResponseEntity<>(l.get(), HttpStatus.OK);
@@ -95,10 +109,14 @@ public class LobbyController {
         }
     }
 
+    /**
+     * API POST pentru a intra intr-un lobby.
+     * @param lobbyDTO (DTO-ul ce contine numele lobby-ului, numele utilizatorului si daca a acceptat sau nu invite-ul)
+     * @return Lobby-ul sau mesajul erorii.
+     */
     @PostMapping("/join")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> joinLobby(@RequestBody JoinLobbyDTO lobbyDTO)
-            throws ExecutionException, InterruptedException {
+    public ResponseEntity<?> joinLobby(@RequestBody JoinLobbyDTO lobbyDTO){
         try {
             CompletableFuture<Lobby> l = lobbyService.joinLobby(lobbyDTO);
             return new ResponseEntity<>(l.get(), HttpStatus.OK);
@@ -111,6 +129,11 @@ public class LobbyController {
         }
     }
 
+    /**
+     * API POST pentru a iesi dintr-un lobby.
+     * @param lobbyDTO (DTO-ul ce contine numele lobby-ului si numele utilizatorului)
+     * @return Lobby-ul sau mesajul erorii.
+     */
     @PostMapping("/kick")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> kickFromLobby(@RequestBody KickLobbyDTO lobbyDTO) {

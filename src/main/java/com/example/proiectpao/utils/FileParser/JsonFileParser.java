@@ -66,7 +66,7 @@ public class JsonFileParser extends FileParser {
                 ((UserRepository) type).save(k);
                 return true;
             }else if(type instanceof ChatRepository){
-                Type listType = new TypeToken<List<MessageDTO>>(){}.getType();
+                Type listType = new TypeToken<List<Chat>>(){}.getType();
                 List<Chat> l = new Gson().fromJson(json, listType);
                 ((ChatRepository) type).saveAll(l);
                 return true;
@@ -83,11 +83,11 @@ public class JsonFileParser extends FileParser {
         return true;
     }
 
-    /*
-     * Metoda write este folosita pentru a scrie un fisier JSON
-     * @param userJson - datele care trebuie scrise
-     * @param s3 - S3
-     * @return - numele fisierului scris
+    /**
+     * Metoda JsonFileParser.write este folosita pentru a scrie un fisier JSON
+     * @param userJson datele care trebuie scrise
+     * @param s3 S3
+     * @return numele fisierului scris
      */
     @Override
     public String write(Object userJson, S3Service s3) throws IOException {

@@ -27,6 +27,11 @@ public class UserController {
 
     @Autowired private IUserService userService;
 
+    /**
+     * API POST pentru a inregistra un utilizator.
+     * @param userRegisterDTO (DTO-ul ce contine username-ul, parola si email-ul utilizatorului)
+     * @return Utilizatorul creat sau mesajul erorii.
+     */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> register(@RequestBody UserRegisterDTO userRegisterDTO) {
@@ -40,6 +45,12 @@ public class UserController {
         }
     }
 
+    /**
+     * API POST pentru a loga un utilizator.
+     * @param userLoginDTO (DTO-ul ce contine username-ul si parola utilizatorului)
+     * @return Utilizatorul logat sau mesajul erorii.
+     * @see IUserService#login(UserLoginDTO)
+     */
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> login(@RequestBody UserLoginDTO userLoginDTO) {
@@ -53,6 +64,11 @@ public class UserController {
         }
     }
 
+    /**
+     * API GET pentru a prelua prietenii unui utilizator.
+     * @param username numele utilizatorului
+     * @return Lista cu numele prietenilor sau mesajul erorii.
+     */
     @GetMapping("/friends/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getFriends(@PathVariable String username) {
@@ -66,6 +82,12 @@ public class UserController {
         }
     }
 
+    /**
+     * API GET pentru a descarca un fisier JSON cu informatiile despre un utilizator.
+     * Pentru ca nu putem trimite atat numele fisierului cat si fisierul efectiv, am retinut numele fisierului in header-ul Content-Disposition.
+     * @param username numele utilizatorului
+     * @return Fisierul cu informatiile sau mesajul erorii.
+     */
     @GetMapping("/downloadUser/{username}")
     @ResponseStatus(HttpStatus.CREATED)
     @CrossOrigin(
@@ -89,6 +111,12 @@ public class UserController {
         }
     }
 
+    /**
+     * API POST pentru a incarca statisticile unui utilizator.
+     * @param file fisierul JSON cu statisticile
+     * @param user numele utilizatorului
+     * @return true daca s-a incarcat cu succes, false altfel sau mesajul erorii.
+     */
     @PostMapping("/uploadStats/{user}")
     @ResponseStatus(HttpStatus.OK)
     @CrossOrigin(
@@ -108,6 +136,11 @@ public class UserController {
         }
     }
 
+    /**
+     * API GET pentru a afisa informatiile unui utilizator.
+     * @param username numele utilizatorului
+     * @return DTO-ul cu informatiile utilizatorului sau mesajul erorii.
+     */
     @GetMapping("/displayUser/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> displayUser(@PathVariable String username) {

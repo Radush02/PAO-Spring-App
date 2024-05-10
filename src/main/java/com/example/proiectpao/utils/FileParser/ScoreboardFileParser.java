@@ -60,6 +60,8 @@ public class ScoreboardFileParser extends FileParser {
                                 .kills(Integer.parseInt(playerStats[1].trim()))
                                 .deaths(Integer.parseInt(playerStats[2].trim()))
                                 .headshots(Integer.parseInt(playerStats[3].trim()))
+                                .hits(Integer.parseInt(playerStats[5].trim()))
+                                .win(Boolean.parseBoolean(playerStats[6].trim()))
                                 .build();
                 multiplayerGame.getUserStats().put(playerStats[0].trim(), stats);
             }
@@ -71,11 +73,11 @@ public class ScoreboardFileParser extends FileParser {
             throw new NonExistentException("Eroare AWS. Verifica conexiunea la internet." + e.getMessage());
         }
     }
-    /*
-     * Metoda write este folosita pentru a scrie un fisier de tip .sb
-     * @param data - datele care trebuie scrise
-     * @param s3 - S3
-     * @return - numele fisierului scris
+    /**
+     * Metoda ScoreboardFileParser.write este folosita pentru a scrie un fisier de tip .sb
+     * @param data datele care trebuie scrise
+     * @param s3 S3
+     * @return numele fisierului scris
      */
     @Override
     public String write(Object data, S3Service s3) throws IOException {
@@ -103,7 +105,7 @@ public class ScoreboardFileParser extends FileParser {
             }
             continut.append("Nume player")
                     .append(repeat(nrSpatii - "Nume player".length()))
-                    .append(" | Kills | Deaths | Headshots | Score\n");
+                    .append(" | Kills | Deaths | Headshots | Score | Hits | Win\n");
             for (String u : multiplayerGame.getUserStats().keySet()) {
                 continut.append(u)
                         .append(repeat(nrSpatii - u.length()))
@@ -145,6 +147,14 @@ public class ScoreboardFileParser extends FileParser {
                                 multiplayerGame.getUserStats().get(u).getKills() * 2
                                         + multiplayerGame.getUserStats().get(u).getHeadshots()
                                                 * 1.5)
+                        .append(" | ")
+                        .append(
+                                multiplayerGame.getUserStats().get(u).getHits())
+                        .append(" | ")
+                        .append(
+                                multiplayerGame.getUserStats().get(u).isWin()
+                        )
+
                         .append("\n");
             }
             RandomNameGenerator r = RandomNameGenerator.getInstance();
