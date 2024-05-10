@@ -10,12 +10,13 @@ import { FormsModule } from '@angular/forms';
 import { GameService } from '../../services/game.service';
 import { MatDialog } from '@angular/material/dialog';
 import { PopupComponent } from '../popup/popup.component';
+import { ErrorComponent } from '../../error/error.component';
 
 @Component({
   selector: 'app-lobbies',
   standalone: true,
   imports: [NavbarComponent,CommonModule,RouterOutlet,HttpClientModule,ReactiveFormsModule,FormsModule],
-  providers: [LobbyService,GameService,PopupComponent],
+  providers: [LobbyService,GameService,PopupComponent,ErrorComponent],
   templateUrl: './lobbies.component.html',
   styleUrl: './lobbies.component.css'
 })
@@ -31,6 +32,20 @@ export class LobbiesComponent implements OnInit {
    inLobby=false;
    username='';
    currentLobby = '';
+   selectedLobby: any = null;
+   showErrorDialog(message: string) {
+    this.dialog.open(ErrorComponent, {
+      data: { message: message },
+    });
+  }
+   selectLobby(lobby: any) {
+       if(this.selectLobby==lobby)
+        {
+            this.selectedLobby = null;
+            return;
+        }
+       this.selectedLobby = lobby;
+   }
    async getLobbies(){
     this.username = JSON.parse(this.cookieService.get('token')).username;
     this.lobbies = await this.lobbyService.getLobbies().toPromise();
@@ -44,7 +59,7 @@ export class LobbiesComponent implements OnInit {
   }
   async createLobby(){
     if(this.lobbyName == '') {
-      this.errorMessage = 'Introdu un nume!';
+      this.showErrorDialog('Introdu un nume.');
       return;
     }
     try {
@@ -52,7 +67,7 @@ export class LobbiesComponent implements OnInit {
       this.getLobbies();
       this.errorMessage = '';
     } catch (error:any) {
-      this.errorMessage = error.error.split(': ')[1] || 'o7';
+      this.showErrorDialog(error.error.split(': ')[1] || 'o7');
     }
   }
   async leaveLobby(lobbyLeader:string){
@@ -60,7 +75,7 @@ export class LobbiesComponent implements OnInit {
       await this.lobbyService.leaveLobby(lobbyLeader,this.username).toPromise();
       this.getLobbies();
     } catch (error:any) {
-      this.errorMessage = error.error.split(': ')[1] || 'o7';
+      this.showErrorDialog(error.error.split(': ')[1] || 'o7');
     }
   }
   async joinLobby(lobbyLeader:string){
@@ -69,7 +84,7 @@ export class LobbiesComponent implements OnInit {
       await this.lobbyService.joinLobby(lobbyLeader,this.username).toPromise();
       this.getLobbies();
     } catch (error:any) {
-      this.errorMessage = error.error.split(': ')[1] || 'o7';
+      this.showErrorDialog(error.error.split(': ')[1] || 'o7');
     }
 
   }

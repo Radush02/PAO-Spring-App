@@ -2,12 +2,15 @@ package com.example.proiectpao.utils.FileParser;
 
 import static java.lang.Math.max;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import com.example.proiectpao.collection.MultiplayerGame;
 import com.example.proiectpao.collection.MultiplayerUserStats;
+import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.example.proiectpao.utils.RandomGenerator.RandomNameGenerator;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,7 +27,7 @@ public class ScoreboardFileParser extends FileParser {
     }
 
     @Override
-    public boolean read(Object game, MultipartFile file, S3Service s3) throws IOException {
+    public boolean read(Object game, MultipartFile file, S3Service s3,Object type) throws IOException {
         try {
             InputStream is = file.getInputStream();
             String content = IOUtils.toString(is, StandardCharsets.UTF_8).strip();
@@ -43,14 +46,15 @@ public class ScoreboardFileParser extends FileParser {
             multiplayerGame.setGameId(lines[0]);
             String[] players = lines[1].split(" vs ");
             multiplayerGame.setAttackerCaptain(players[0]);
-            multiplayerGame.setAttackerCaptain(players[1]);
+            multiplayerGame.setDefenderCaptain(players[1]);
             String[] lobbies = lines[2].split(" vs ");
             multiplayerGame.setAttackerLobbyName(lobbies[0]);
             multiplayerGame.setDefenderLobbyName(lobbies[1]);
-            multiplayerGame.setScore(lines[2].substring(6));
+            multiplayerGame.setScore(lines[3].substring(6));
             multiplayerGame.setUserStats(new HashMap<>());
-            for (int i = 4; i < lines.length; i++) {
+            for (int i = 5; i < lines.length; i++) {
                 String[] playerStats = lines[i].split("\\|");
+                System.out.println(Arrays.toString(playerStats));
                 MultiplayerUserStats stats =
                         MultiplayerUserStats.builder()
                                 .kills(Integer.parseInt(playerStats[1].trim()))
@@ -60,11 +64,19 @@ public class ScoreboardFileParser extends FileParser {
                 multiplayerGame.getUserStats().put(playerStats[0].trim(), stats);
             }
             return true;
-        } catch (com.amazonaws.SdkClientException e) {
-            throw new IOException("Fisierul trimis nu exista in baza de date");
+        }catch(com.amazonaws.services.kms.model.NotFoundException e){
+            throw new NotFoundException("Nu exista fisierul in baza noastra de date.");
+        }
+        catch (com.amazonaws.SdkClientException e) {
+            throw new NonExistentException("Eroare AWS. Verifica conexiunea la internet." + e.getMessage());
         }
     }
-
+    /*
+     * Metoda write este folosita pentru a scrie un fisier de tip .sb
+     * @param data - datele care trebuie scrise
+     * @param s3 - S3
+     * @return - numele fisierului scris
+     */
     @Override
     public String write(Object data, S3Service s3) throws IOException {
         try {
@@ -183,8 +195,8 @@ public class ScoreboardFileParser extends FileParser {
                                 })
                         .collect(
                                 Collectors.toMap(
-                                        (e) -> e.getKey(),
-                                        (e) -> e.getValue(),
+                                        Map.Entry::getKey,
+                                        Map.Entry::getValue,
                                         (e1, e2) -> e1,
                                         LinkedHashMap::new));
         System.out.println(sortedUserStats);

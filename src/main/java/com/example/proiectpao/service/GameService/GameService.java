@@ -46,33 +46,10 @@ public class GameService implements IGameService {
         this.s3Service = s3Service;
     }
 
-    /**
-     * Returneaza rezultatul unui meci.<br>
-     * Game logic: <br>
-     * MR12 cu OT de 6 runde <br>
-     * Se joaca 24 de runde si primul la 13 castiga. <br>
-     * In caz de egalitate se joaca inca 6 runde pana cand se alege castigtor. <br>
-     * Exemplu de 3 meciuri MR12 cu OT: <br>
-     * <a href="https://www.hltv.org/matches/2370726/natus-vincere-vs-g2-pgl-cs2-major-copenhagen-2024">Navi vs G2 in semifinala CS2 PGL Copenhagen Major 2024 </a> <br>
-     * <br>
-     * Logica jocului este sa se atace random: <br>
-     * <ul>
-     *     <li>Generez un nr random intre 1-6 pt a decide cine castiga o runda.</li>
-     *     <li>In functie de diferenta dintre nr extrase, se atribuie stats. </li>
-     *     <ul>
-     *         <li>>=4 - One tap HS</li>
-     *         <li>=3 - 3 hituri winner, 0 loser</li>
-     *         <li>=2 - 3 hituri, 1 loser</li>
-     *         <li>=1 - 4 hituri, 2 loser</li>
-     *     </ul>
-     * </ul>
-     * <br>
-     * @param Player1 Numele jucatorului din echipa A
-     * @param Player2 Numele jucatorului din echipa B
-     * @return Rezultatul meciului
-     */
+
     @Override
     @Async
+    @Deprecated
     public CompletableFuture<Results> attack(String Player1, String Player2) {
         User attacker = userRepository.findByUsernameIgnoreCase(Player1);
         User defender = userRepository.findByUsernameIgnoreCase(Player2);
@@ -121,7 +98,7 @@ public class GameService implements IGameService {
 
     @Override
     @Async
-    public CompletableFuture<?> attackTeam(String attackerCaptain, String defenderCaptain) {
+    public CompletableFuture<String> attackTeam(String attackerCaptain, String defenderCaptain) {
         User attacker = userRepository.findByUsernameIgnoreCase(attackerCaptain);
         Lobby lobbyAttacker = lobbyRepository.findByLobbyLeader(attacker.getUsername());
         if (lobbyAttacker == null)
@@ -337,7 +314,7 @@ public class GameService implements IGameService {
 
     @Override
     @Async
-    public CompletableFuture<?> displayMultiplayerGame(String username) {
+    public CompletableFuture<List<MultiplayerGame>> displayMultiplayerGame(String username) {
         User u = userRepository.findByUsernameIgnoreCase(username);
         if (u == null) {
             throw new NonExistentException("Utilizatorul nu exista");
@@ -355,7 +332,7 @@ public class GameService implements IGameService {
 
     @Override
     @Async
-    public CompletableFuture<?> getGame(String gameId) {
+    public CompletableFuture<MultiplayerGame> getGame(String gameId) {
         MultiplayerGame multiplayerGame = multiplayerGameRepository.findByGameId(gameId);
         if (multiplayerGame == null) {
             throw new NonExistentException("Meciul nu exista");
@@ -368,7 +345,8 @@ public class GameService implements IGameService {
     public CompletableFuture<?> importMultiplayerGame(String gameId, MultipartFile file)
             throws IOException {
         MultiplayerGame multiplayerGame = multiplayerGameRepository.findByGameId(gameId);
-        if (scoreboardFileParser.read(multiplayerGame, file, s3Service)) {
+        if (scoreboardFileParser.read(multiplayerGame, file, s3Service,"multiplayer")) {
+            multiplayerGameRepository.deleteByGameId(gameId);
             multiplayerGameRepository.save(multiplayerGame);
             return CompletableFuture.completedFuture(multiplayerGame);
         }

@@ -1,22 +1,70 @@
 <app-navbar/>
 <div *ngIf="isLoading">Loading...</div>
   <div *ngIf="!isLoading">
-<div class="match">
-      <h2>{{match.attackerLobbyName}} vs {{ match.defenderLobbyName }} </h2>
-      <p>{{ match.result }} - {{match.score}} </p>
+    <div class="match">
+      <h2>{{ match.attackerLobbyName }} vs {{ match.defenderLobbyName }}</h2>
+      <p>{{ match.result }} - {{ match.score }}</p>
+      <button *ngIf="role !== 'User'" (click)="downloadGame()">Descarca meciul</button>
+      <table>
+        <tr>
+          <th class="team-info">Castigator </th>
+          <td colspan="2">{{ winnerTeam }}</td>
+          <th class="team-info">Runde castigate : {{ wonrounds }}</th>
+          <th class="team-info">Runde pierdute : {{ lostrounds }}</th>
+        </tr>
+        <tr>
+          <td colspan="5"></td>
+        </tr>
+        <tr>
+          <th>Player</th>
+          <th>Kills</th>
+          <th>Deaths</th>
+          <th>Headshots</th>
+          <th>Hits</th>
+        </tr>
+        <tbody>
+          <tr *ngFor="let player of usernames">
+            <ng-container *ngIf="match.userStats[player].win">
+              <td>{{ player }}</td>
+              <td>{{ match.userStats[player].kills }}</td>
+              <td>{{ match.userStats[player].deaths }}</td>
+              <td>{{ match.userStats[player].headshots }}</td>
+              <td>{{ match.userStats[player].hits }}</td>
+            </ng-container>
+          </tr>
+        </tbody>
+      </table>
+  
+      <table>
+        <tr>
+          <th class="team-info">Pierzator</th>
+          <td colspan="2">{{ loserTeam }}</td>
+          <th class="team-info">Runde castigate : {{ lostrounds }}</th>
+          <th class="team-info">Runde pierdute : {{ wonrounds }}</th>
+        </tr>
+        <tr>
+          <td colspan="5"></td>
+        </tr>
+        <tr>
+          <th>Player</th>
+          <th>Kills</th>
+          <th>Deaths</th>
+          <th>Headshots</th>
+          <th>Hits</th>
+        </tr>
+        <tbody>
+          <tr *ngFor="let player of usernames">
+            <ng-container *ngIf="!match.userStats[player].win">
+              <td>{{ player }}</td>
+              <td>{{ match.userStats[player].kills }}</td>
+              <td>{{ match.userStats[player].deaths }}</td>
+              <td>{{ match.userStats[player].headshots }}</td>
+              <td>{{ match.userStats[player].hits }}</td>
+            </ng-container>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
 
-      <h3>Castigator: {{winnerTeam}}</h3>
-      <div *ngFor="let player of usernames">
-        <div *ngIf="match.userStats[player].win==true">
-        <p>{{ player }} - Kills: {{ match.userStats[player].kills }}, Deaths: {{ match.userStats[player].deaths }}, Headshots: {{ match.userStats[player].headshots }}, Hits: {{ match.userStats[player].hits }}</p>
-    </div>
-      </div>
-      <h3>Pierzator: {{loserTeam}} </h3>
-      <div *ngFor="let player of usernames">
-        <div *ngIf="match.userStats[player].win==false">
-        <p>{{ player }} - Kills: {{ match.userStats[player].kills }}, Deaths: {{ match.userStats[player].deaths }}, Headshots: {{ match.userStats[player].headshots }}, Hits: {{ match.userStats[player].hits }}</p>
-    </div>
-      </div>
-</div>
-<button (click)="downloadGame()">Descarca meciul</button>
 </div>

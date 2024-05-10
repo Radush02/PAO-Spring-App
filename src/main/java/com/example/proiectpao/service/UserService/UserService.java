@@ -80,11 +80,6 @@ public class UserService implements IUserService {
         return u;
     }
 
-    /**
-     * Metoda pentru inregistrarea unui utilizator.
-     * @param userRegisterDTO (DTO-ul ce contine datele necesare pentru inregistrare)
-     * @return Utilizatorul inregistrat.
-     */
     @Override
     @Async
     public CompletableFuture<User> register(UserRegisterDTO userRegisterDTO) {
@@ -120,11 +115,7 @@ public class UserService implements IUserService {
         return CompletableFuture.completedFuture(userRepository.save(u));
     }
 
-    /**
-     * Metoda login verifica daca un utilizator exista in baza de date si daca parola este corecta.
-     * @param userLoginDTO (DTO-ul ce contine datele necesare pentru logare)
-     * @return Utilizatorul logat.
-     */
+
     @Override
     @Async
     public CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO) {
@@ -177,11 +168,7 @@ public class UserService implements IUserService {
         throw new NonExistentException("Userul nu exista sau parola incorecta.");
     }
 
-    /**
-     * Metoda displayUser afiseaza un utilizator.
-     * @param username numele utilizatorului
-     * @return Utilizatorul afisat.
-     */
+
     @Override
     @Async
     public CompletableFuture<UserDTO> displayUser(String username) {
@@ -192,12 +179,6 @@ public class UserService implements IUserService {
         return CompletableFuture.completedFuture(configureDTO(k));
     }
 
-    /**
-     * Metoda downloadUser returneaza un fisier JSON cu informatiile despre un utilizator.
-     * @param username numele utilizatorului
-     * @return - Un pair ce contine fisierul JSON si numele acestuia
-     * @see <a href="https://medium.com/@mertcakmak2/object-storage-with-spring-boot-and-aws-s3-64448c91018f">Object Storage with Spring Boot and AWS S3</a>
-     */
     @Override
     @Async
     public CompletableFuture<Pair<Resource, String>> downloadUser(String username)
@@ -218,12 +199,6 @@ public class UserService implements IUserService {
                         nume + ".json"));
     }
 
-    /**
-     * Metoda uploadStats incarca statisticile unui utilizator.
-     * @param user numele utilizatorului
-     * @param file fisierul JSON cu statisticile
-     * @return true daca s-a incarcat cu succes, false altfel.
-     */
     @Override
     @Async
     public CompletableFuture<Boolean> uploadStats(String user, MultipartFile file) {
@@ -234,10 +209,20 @@ public class UserService implements IUserService {
         if (file.getContentType() == null || !file.getContentType().equals("application/json")) {
             throw new NonExistentException("Fisierul nu este de tip JSON.");
         }
-        if (jsonFileParser.read(k, file, s3Service)) {
+        if (jsonFileParser.read(k, file, s3Service,userRepository)) {
             userRepository.save(k);
             return CompletableFuture.completedFuture(true);
         }
         return CompletableFuture.completedFuture(false);
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<List<String>> getFriends(String username) {
+        User k = userRepository.findByUsernameIgnoreCase(username);
+        if (k == null) {
+            throw new NonExistentException("Userul nu exista.");
+        }
+        return CompletableFuture.completedFuture(k.getFriends());
     }
 }

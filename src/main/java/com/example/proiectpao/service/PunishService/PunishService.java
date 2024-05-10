@@ -99,7 +99,7 @@ public class PunishService implements IPunishService {
 
     /**
      * Metoda assignRole atribuie un rol unui utilizator.
-     * @param userRoleDTO (DTO-ul ce contine username-ul si rolul atribuit)
+     * @param userRoleDTO (DTO-ul ce contine username-ul, rolul atribuit si adminul care a schimbat rolul)
      * @return true
      */
     @Override
@@ -111,7 +111,7 @@ public class PunishService implements IPunishService {
             throw new NonExistentException("Userul nu exista.");
         }
         if (adm.getRole() != Admin) {
-            throw new NonExistentException("Adminul nu exista.");
+            throw new UnauthorizedActionException("Nu ai suficiente permisiuni.");
         }
         try {
             k.setRole(userRoleDTO.getRole());
@@ -203,11 +203,27 @@ public class PunishService implements IPunishService {
         else if (a.getRole() == Role.User) {
             throw new UnauthorizedActionException("Nu ai suficiente permisiuni.");
         }
+        try (FileWriter fw =
+                new FileWriter("src/main/java/com/example/proiectpao/logs/adminlog.csv", true)) {
+            String w =
+                    "\n\""
+                            + a.getUsername()
+                            + "\", "
+                            + a.getRole()
+                            + "\", "
+                            + "a extras logurile, "
+                            + java.time.LocalDateTime.now()
+                            + "\"";
+            fw.write(w);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             return CompletableFuture.completedFuture(
                     new InputStreamResource(
                             new FileInputStream(
                                     "src/main/java/com/example/proiectpao/logs/adminlog.csv")));
+
         } catch (IOException e) {
             e.printStackTrace();
         }

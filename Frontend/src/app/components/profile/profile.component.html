@@ -1,6 +1,6 @@
 <app-navbar/>
-
-<div class="profile-container">
+<div *ngIf="!loaded">Loading...</div>
+<div class="profile-container" *ngIf="loaded">
   <div class="profile-info">
     <div class="profile-data">
       <div class="profile-username">Username: {{user.username}}</div>

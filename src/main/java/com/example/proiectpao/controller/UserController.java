@@ -9,6 +9,7 @@ import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.service.UserService.IUserService;
 import com.example.proiectpao.utils.Pair;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -46,6 +47,19 @@ public class UserController {
             CompletableFuture<UserDTO> user = userService.login(userLoginDTO);
             return new ResponseEntity<>(user.get(), HttpStatus.OK);
         } catch (NonExistentException | UnauthorizedActionException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/friends/{username}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> getFriends(@PathVariable String username) {
+        try {
+            CompletableFuture<List<String>> user = userService.getFriends(username);
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

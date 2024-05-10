@@ -6,6 +6,12 @@ import java.util.Date;
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Clasa SingleplayerGame reprezinta un joc jucat intre 2 utilizator.<br>
+ * Un joc singleplayer contine un id, id-ul utilizatorului care a jucat, id-ul adversarului,
+ * rezultatul jocului, scorul, data la care s-a jucat.
+ * @Author Radu
+ */
 @Data
 @Builder
 @Document(collection = "games")

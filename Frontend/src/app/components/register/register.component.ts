@@ -37,4 +37,7 @@ export class RegisterComponent {
       this.errorMessage = error.error;
     });
   }
+  login(){
+    this.router.navigate(['/login']);
+  }
 }

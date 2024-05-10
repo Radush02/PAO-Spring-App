@@ -1,0 +1,32 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .match {
+    text-align: center;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .match h2 {
+    margin: 10px 0;
+  }
+
+  table {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  th, td {
+    border: 1px solid black;
+    padding: 8px;
+  }
+
+  th.team-info,
+  th.team-info + td {
+    border: none;
+  }

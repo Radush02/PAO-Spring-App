@@ -41,11 +41,18 @@ public class GameController {
         return new ResponseEntity<>(results.get(), HttpStatus.OK);
     }
 
+    /**
+     * API POST pentru a ataca o echipa.<br>
+     * Logica jocului este explicata in functia GameService.attackTeam.
+     * @param userLoginDTO (DTO-ul ce contine numele liderului de echipa)
+     * @param opponent numele liderului echipei ce va fi atacata
+     * @return Rezultatul meciului sau mesajul erorii.
+     * @see IGameService#attackTeam(String, String)
+     */
     @PostMapping("/attackTeam/{opponent}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> attackTeam(
-            @RequestBody UserLoginDTO userLoginDTO, @PathVariable String opponent)
-            throws ExecutionException, InterruptedException {
+            @RequestBody UserLoginDTO userLoginDTO, @PathVariable String opponent) {
         try {
             CompletableFuture<?> results =
                     gameService.attackTeam(userLoginDTO.getUsername(), opponent);
@@ -59,6 +66,14 @@ public class GameController {
         }
     }
 
+    /**
+     * API GET pentru a exporta un joc multiplayer.<br>
+     * Pentru ca nu putem trimite atat numele fisierului cat si fisierul efectiv, am retinut numele fisierului in header-ul Content-Disposition.
+     * @param gameId id-ul jocului
+     * @return Fisierul efectiv sau mesajul erorii.
+     * @throws ExecutionException Daca task-ul a fost anulat.
+     * @throws InterruptedException Daca task-ul a fost intrerupt.
+     */
     @GetMapping("/exportMultiplayerGame/{gameId}")
     @CrossOrigin(
             origins = "http://localhost:4200",
@@ -82,6 +97,13 @@ public class GameController {
         }
     }
 
+    /**
+     * API GET pentru a prelua detaliile unui joc.
+     * @param gameId id-ul jocului
+     * @return Detaliile jocului sau mesajul erorii.
+     * @throws ExecutionException Daca task-ul a fost anulat.
+     * @throws InterruptedException Daca task-ul a fost intrerupt.
+     */
     @GetMapping("/getGame/{gameId}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getGame(@PathVariable String gameId)
@@ -94,6 +116,13 @@ public class GameController {
         }
     }
 
+    /**
+     * API GET pentru a prelua jocurile multiplayer ale unui user.
+     * @param username numele user-ului
+     * @return O lista de jocuri 5v5 sau mesajul erorii.
+     * @throws ExecutionException Daca task-ul a fost anulat.
+     * @throws InterruptedException Daca task-ul a fost intrerupt.
+     */
     @GetMapping("displayMultiplayerGame/{username}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> displayMultiplayerGame(@PathVariable String username)
@@ -106,6 +135,14 @@ public class GameController {
         }
     }
 
+    /**
+     * API POST pentru a importa un back-up al unui joc multiplayer.<br>
+     * @param gameId id-ul jocului
+     * @param file fisierul ce contine back-up-ul jocului
+     * @return true sau mesajul erorii.
+     * @throws ExecutionException Daca task-ul a fost anulat.
+     * @throws InterruptedException Daca task-ul a fost intrerupt.
+     */
     @PostMapping("/importMultiplayerGame/{gameId}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> importMultiplayerGame(

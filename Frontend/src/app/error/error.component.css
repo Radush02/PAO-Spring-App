@@ -1,0 +1,25 @@
+
+.mat-dialog-container {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+
+  }
+
+  .error-dialog-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .error-dialog-actions button {
+    margin-right: 10px;
+  }
+  button{
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+  }

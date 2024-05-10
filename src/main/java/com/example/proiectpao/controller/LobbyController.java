@@ -25,9 +25,13 @@ public class LobbyController {
         this.lobbyService = lobbyService;
     }
 
+    /**
+     * API GET pentru a prelua liderii tuturor lobby-urilor.
+     * @return Lista cu liderii lobby-urilor sau mesajul erorii.
+     */
     @GetMapping("/getLeaders")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> getLeaders() throws ExecutionException, InterruptedException {
+    public ResponseEntity<?> getLeaders() {
         try {
             CompletableFuture<?> l = lobbyService.getLobbyLeaders();
             return new ResponseEntity<>(l.get(), HttpStatus.OK);
@@ -36,10 +40,14 @@ public class LobbyController {
         }
     }
 
+    /**
+     * API Post pentru a crea un lobby.
+     * @param lobbyDTO
+     * @return
+     */
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> createLobby(@RequestBody CreateLobbyDTO lobbyDTO)
-            throws ExecutionException, InterruptedException {
+    public ResponseEntity<?> createLobby(@RequestBody CreateLobbyDTO lobbyDTO) {
         try {
             CompletableFuture<Lobby> l = lobbyService.createLobby(lobbyDTO);
             return new ResponseEntity<>(l.get(), HttpStatus.CREATED);
@@ -105,8 +113,7 @@ public class LobbyController {
 
     @PostMapping("/kick")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> kickFromLobby(@RequestBody KickLobbyDTO lobbyDTO)
-            throws ExecutionException, InterruptedException {
+    public ResponseEntity<?> kickFromLobby(@RequestBody KickLobbyDTO lobbyDTO) {
         try {
             CompletableFuture<Lobby> l = lobbyService.kickFromLobby(lobbyDTO);
             return new ResponseEntity<>(l.get(), HttpStatus.OK);

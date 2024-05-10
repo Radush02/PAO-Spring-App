@@ -24,4 +24,9 @@ export class GameService {
             responseType: 'blob' as 'json'
           });
     }
+    importMultiplayerGame(file: File,gameId:string): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.http.post<any>(`${this.apiKey}/importMultiplayerGame/${gameId}`, formData);
+      }
 }

@@ -20,6 +20,9 @@ export class DashboardComponent implements OnInit {
   matchHistory: matchHistoryDTO[] = [];
   user: UserStatsDTO[] = [];
   isLoading=false;
+  currentPage = 1;
+  itemsPerPage = 5;
+  totalItems = 0;
   constructor(private cookieService: CookieService,private gameService: GameService,private router:Router) { }
   redirectToGame(resultGameId: string) {
     this.router.navigate(['/game'], { queryParams: { gameId: resultGameId } });
@@ -38,8 +41,14 @@ export class DashboardComponent implements OnInit {
           match.score = match.score.split('-').reverse().join('-');
         }
       }
-      this.isLoading=false;
+      this.totalItems = data.length;
+      this.matchHistory = data.slice((this.currentPage - 1) * this.itemsPerPage, this.currentPage * this.itemsPerPage);
+      this.isLoading = false;
     });
+  }
+  onPageChange(pageNumber: number) {
+    this.currentPage = pageNumber;
+    this.getGameHistory();
   }
   ngOnInit() {
     this.username=JSON.parse(this.cookieService.get('token')).username;

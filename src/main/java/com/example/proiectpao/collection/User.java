@@ -8,6 +8,12 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Clasa User reprezinta un utilizator al aplicatiei.<br>
+ * Un utilizator contine un id, rolul, numele de utilizator,
+ * seed-ul, hash-ul, email-ul, numele, statistici, lista de jocuri jucate si lista de prieteni.
+ * @Author Radu
+ */
 @Data
 @Builder
 @Document(collection = "users")
@@ -25,10 +31,12 @@ public class User {
     private String name;
     private Stats stats;
     private List<String> gameIDs;
+    private List<String> friends;
 
     public User() {
         this.role = Role.User;
         gameIDs = new ArrayList<>();
+        friends = new ArrayList<>();
     }
 
     public void addHits(int i) {
@@ -57,5 +65,9 @@ public class User {
 
     public void addGame(String game) {
         gameIDs.add(game);
+    }
+
+    public void addFriend(String friend) {
+        friends.add(friend);
     }
 }

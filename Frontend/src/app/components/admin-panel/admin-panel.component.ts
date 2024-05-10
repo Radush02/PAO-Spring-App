@@ -5,12 +5,13 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CookieService } from 'ngx-cookie-service';
 import { validatorRole } from '../../validators/validator';
+import { GameService } from '../../services/game.service';
 
 @Component({
   selector: 'app-admin-panel',
   standalone: true,
   imports: [NavbarComponent,ReactiveFormsModule],
-  providers: [PunishService],
+  providers: [PunishService,GameService],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.css'
 })
@@ -19,7 +20,7 @@ export class AdminPanelComponent {
   assignRoleForm:FormGroup;
   unpunishForm: FormGroup;
   user=JSON.parse(this.cookieService.get('token')).username;
-  constructor(private punishService: PunishService,private route:Router,private fb:FormBuilder,private cookieService:CookieService) {
+  constructor(private punishService: PunishService,private route:Router,private fb:FormBuilder,private cookieService:CookieService,private gameService:GameService) {
     /*
     public class PunishDTO {
     private String username;
@@ -69,6 +70,29 @@ export class AdminPanelComponent {
     this.punishService.warn(this.punishForm.value).subscribe((data) => {
       alert(data);
     });
+  }
+  uploadGame(){
+    const fileInput = document.getElementById('file') as HTMLInputElement;
+    const button = document.getElementById('statistici') as HTMLButtonElement;
+    const gameId = (document.getElementById('gameId') as HTMLInputElement).value;
+    button.disabled = true;
+    if (fileInput.files && fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      this.gameService.importMultiplayerGame(file,gameId).subscribe(response => {
+        console.log(response);
+        button.disabled=false;
+        alert("Back-up incarcat cu succes");
+      },error=>
+        {
+          console.error(error);
+        alert(error.error.message.split(': ')[1]);
+        button.disabled=false;
+    });
+    }
+    else{
+      button.disabled=false;
+      alert('Incarca un fisier');
+    }
   }
   getLogs() {
     this.punishService.getLogs(this.user).subscribe((data) => {

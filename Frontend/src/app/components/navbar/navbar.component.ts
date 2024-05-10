@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { UserService } from '../../services/user.service';
 import { Router, RouterOutlet } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
 import { CommonModule } from '@angular/common';
@@ -8,16 +7,15 @@ import { CommonModule } from '@angular/common';
   selector: 'app-navbar',
   standalone: true,
   imports: [RouterOutlet,CommonModule],
-  providers: [UserService],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
 export class NavbarComponent implements OnInit{
-  constructor(private userService:UserService,private router:Router,private cookieService:CookieService) { }
+  constructor(private router:Router,private cookieService:CookieService) { }
   username:string="";
   role:string="";
   logout(){
-    this.userService.logout();
+    this.cookieService.delete('token');
     this.router.navigate(['/login']);
   }
   dashboard(){
@@ -29,8 +27,8 @@ export class NavbarComponent implements OnInit{
   chats(){
     this.router.navigate(['/chats']);
   }
-  messages(){
-    this.router.navigate(['/messages']);
+  friends(){
+    this.router.navigate(['/friends']);
   }
   profile(){
     this.router.navigate(['/profile']);

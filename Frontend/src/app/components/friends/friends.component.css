@@ -1,0 +1,68 @@
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+  }
+  
+  .friends-list,
+  .friend-requests,
+  .add-friend {
+    width: 30%;
+    overflow-y: auto; 
+    max-height: 400px;
+    
+  }
+  
+  .friend-item,
+  .request-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #afafaf;
+    border-radius: 5px;
+    color: #000;
+  }
+  .friendbtn{
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .chat{
+    background-color: #4CAF50;
+  }
+  .delete{
+    background-color: #f44336;
+  }
+  .add-friend-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .add-friend-form label {
+    margin-bottom: 5px;
+  }
+  
+  .add-friend-form input {
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .add-friend-form button {
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+  }
+  
+  .add-friend-form button:hover {
+    background-color: #0056b3;
+  }
+  

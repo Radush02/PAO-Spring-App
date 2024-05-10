@@ -15,4 +15,10 @@ export class ChatService {
     receive(sender:string,receiver:string): Observable<any> {
         return this.http.get<any>(`${this.apiKey}/receive?senderName=${sender}&username=${receiver}`);
     }
+    export(data:any): Observable<any> {
+        return this.http.post<any>(`${this.apiKey}/export`,data, {
+            responseType: 'blob' as 'json',
+            observe: 'response'
+          });
+    }
 }

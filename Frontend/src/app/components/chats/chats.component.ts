@@ -38,15 +38,33 @@ export class ChatsComponent {
       location.reload();
     });
   }
+  export(){
+    this.chatService.export({requester:this.user,receiver:this.receiver,sender:this.user}).subscribe(
+      (data) => {
+        const contentDispositionHeader = data.headers.get('Content-Disposition');
+        const filename = contentDispositionHeader
+          ? contentDispositionHeader.split(';')[1].trim().split('=')[1].replace(/"/g, '')
+          : 'contact_admin_issue.json';
+        const blob = new Blob([data.body], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      (error) => {
+        console.log(error.error);
+      }
+    );
+  }
   sentMessages() {
     this.chatService.receive(this.user,this.receiver).subscribe((data:MessageDTO[]) => {
       for (let i = 0; i < data.length; i++) {
         const dateObject = new Date(data[i].date)
-        const hour = dateObject.getHours();
-        const minute = dateObject.getMinutes();
-        const formattedHour = hour < 10 ? `0${hour}` : hour.toString();
-        const formattedMinute = minute < 10 ? `0${minute}` : minute.toString();
-        const formattedTime = `${formattedHour}:${formattedMinute}`;
+        const formattedTime = dateObject.getDate() + ' ' + dateObject.toLocaleString('default', { month: 'short' }) + ' ' + dateObject.getFullYear() + ' ' + dateObject.getHours() + ':' + dateObject.getMinutes();
         data[i].date = formattedTime;
       }
       this.messages=data;

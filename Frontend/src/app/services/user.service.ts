@@ -37,9 +37,7 @@ export class UserService {
       observe: 'response'
     });
   }
-  assignRole(info:any): Observable<any> {
-    return this.http.post<any>(`${this.apiKey}/assignRole`,info);
-}
+
   uploadFile(file: File,username:string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
@@ -47,5 +45,9 @@ export class UserService {
   }
   displayUser(username:string):Observable<any>{
     return this.http.get<any>(`${this.apiKey}/displayUser/${username}`);
+  }
+
+  getFriends(username:string):Observable<any>{
+    return this.http.get<any>(`${this.apiKey}/friends/${username}`);
   }
 }

@@ -20,7 +20,7 @@ public abstract class FileParser {
      * @param s3 - S3
      * @return - true daca fisierul a fost citit cu succes, false altfel
      */
-    public abstract boolean read(Object user, MultipartFile file, S3Service s3) throws IOException;
+    public abstract boolean read(Object user, MultipartFile file, S3Service s3,Object type) throws IOException;
 
     /*
      * Metoda abstracta write este folosita pentru a scrie un fisier
@@ -33,11 +33,16 @@ public abstract class FileParser {
 
     /*
      * Metoda getInstance este folosita pentru a instantia un obiect de tip FileParser in functie de tipul de FileParser primit ca parametru
-     * Oare m-am complicat?
      * @param cls - tipul de FileParser (JsonFileParser sau ScoreboardFileParser)
      * @return - obiectul de tip FileParser
      */
     private static final Map<Class<? extends FileParser>, FileParser> instances = new HashMap<>();
+
+    /*
+     * Metoda getInstance este folosita pentru a instantia un obiect de tip FileParser in functie de tipul de FileParser primit ca parametru
+     * @param cls - tipul de FileParser (JsonFileParser sau ScoreboardFileParser)
+     * @return - obiectul de tip FileParser
+     */
 
     public static synchronized <T extends FileParser> T getInstance(Class<T> cls) {
         return cls.cast(

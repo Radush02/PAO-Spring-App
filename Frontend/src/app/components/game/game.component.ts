@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import { CommonModule } from '@angular/common';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-game',
@@ -13,14 +14,16 @@ import { NavbarComponent } from '../navbar/navbar.component';
   styleUrl: './game.component.css'
 })
 export class GameComponent {
-
+  role='';
   gameId='';
   isLoading=true;
   match!: matchHistoryDTO;
   usernames:string[]=[];
   winnerTeam:string='';
   loserTeam:string='';
-  constructor(private route:Router, private params: ActivatedRoute,private gameService: GameService){
+  wonrounds=0;
+  lostrounds=0;
+  constructor(private route:Router, private params: ActivatedRoute,private gameService: GameService, private cookieService: CookieService) {
     this.params.queryParams.subscribe(params => {
       this.gameId = params['gameId'];
     });
@@ -53,6 +56,7 @@ export class GameComponent {
   async ngOnInit(){
     await this.getGame();
     this.isLoading=false;
+    this.role = JSON.parse(this.cookieService.get('token')).role;
   }
 }
 interface matchHistoryDTO {

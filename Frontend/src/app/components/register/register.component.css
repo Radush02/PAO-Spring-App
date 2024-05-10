@@ -5,6 +5,7 @@
     margin: 0 auto;
     margin-top: 50px;
     box-shadow: 0 0 10px 0 rgba(0,0,0,.1);
+    color:#000;
   }
   
   .login-container input[type="text"],
@@ -30,4 +31,6 @@
   .login-container input[type="submit"]:hover {
     opacity: 0.8;
   }
-  
+  .redirect{
+    cursor: pointer;
+  }

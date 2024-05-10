@@ -1,0 +1,34 @@
+<app-navbar/>
+<div *ngIf="!loaded">Loading...</div>
+<div  *ngIf="loaded" class="container">
+    <div class="friends-list">
+      <h2>Prieteni</h2>
+      <div *ngFor="let friend of friends" class="friend-item">
+        {{ friend }}
+        <button (click)="chat(friend)" class="chat friendbtn">Chat</button>
+        <button (click)="removeFriend(friend)" class="delete friendbtn">Sterge</button>
+      </div>
+    </div>
+    <div class="add-friend">
+        <h2>Adauga prieten</h2>
+        <form [formGroup]="addFriendForm" class="add-friend-form">
+          <label for="receiver">Nume:</label>
+          <input type="text" formControlName="receiver" placeholder="Nume">
+          <button (click)="addFriend()">Adauga</button>
+        </form>
+      </div>
+    <div class="friend-requests">
+      <h2>Cereri de prietenie</h2>
+      <div *ngFor="let requested of requests" class="request-item">
+        {{ requested.sender }}
+        <button (click)="accept(requested.sender)">Accepta</button>
+        <button (click)="decline(requested.sender)">Respinge</button>
+      </div>
+      <h2>Cereri trimise</h2>
+        <div *ngFor="let sent of sent" class="request-item">
+            {{ sent.receiver }}
+        <button (click)="cancel(sent.receiver)">Anuleaza</button>
+    </div>
+  
+
+  </div>
