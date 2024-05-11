@@ -13,16 +13,14 @@ import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.repository.ChatRepository;
 import com.example.proiectpao.repository.PunishRepository;
 import com.example.proiectpao.repository.UserRepository;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.example.proiectpao.utils.FileParser.FileParser;
 import com.example.proiectpao.utils.FileParser.JsonFileParser;
 import com.example.proiectpao.utils.Pair;
 import com.google.gson.Gson;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
@@ -35,53 +33,62 @@ public class ChatService implements IChatService {
     private final PunishRepository punishRepository;
     private final JsonFileParser jsonFileParser;
     private final S3Service s3Service;
+
     public ChatService(
             ChatRepository chatRepository,
             UserRepository userRepository,
-            PunishRepository punishRepository,S3Service s3Service){
+            PunishRepository punishRepository,
+            S3Service s3Service) {
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.punishRepository = punishRepository;
         this.jsonFileParser = FileParser.getInstance(JsonFileParser.class);
         this.s3Service = s3Service;
     }
+
     @Override
     @Async
     public CompletableFuture<Boolean> importChat(ImportMessageDTO dto) throws IOException {
         User requester = userRepository.findByUsernameIgnoreCase(dto.getRequester());
         User receiver = userRepository.findByUsernameIgnoreCase(dto.getReceiver());
         User sender = userRepository.findByUsernameIgnoreCase(dto.getSender());
-        if (requester == null)
-            throw new NonExistentException("Nu ai cont.");
-        if (sender==null || receiver==null)
-            throw new NonExistentException("Userul nu exista.");
-        if(requester.getRole() != Role.Admin && (!Objects.equals(requester.getUsername(), receiver.getUsername()) && !Objects.equals(requester.getUsername(), sender.getUsername()))){
+        if (requester == null) throw new NonExistentException("Nu ai cont.");
+        if (sender == null || receiver == null) throw new NonExistentException("Userul nu exista.");
+        if (requester.getRole() != Role.Admin
+                && (!Objects.equals(requester.getUsername(), receiver.getUsername())
+                        && !Objects.equals(requester.getUsername(), sender.getUsername()))) {
             System.out.println(requester.getRole());
             System.out.println(!Objects.equals(requester.getUsername(), receiver.getUsername()));
             System.out.println(!Objects.equals(requester.getUsername(), sender.getUsername()));
             throw new UnauthorizedActionException("Nu ai permisiuni de a face asta.");
         }
-        jsonFileParser.read(null,dto.getFile(),s3Service,chatRepository);
+        jsonFileParser.read(null, dto.getFile(), s3Service, chatRepository);
         return CompletableFuture.completedFuture(true);
     }
+
     @Override
     @Async
-    public CompletableFuture<Pair<Resource, String>> exportChat(MessageExportDTO dto) throws IOException {
+    public CompletableFuture<Pair<Resource, String>> exportChat(MessageExportDTO dto)
+            throws IOException {
         User requester = userRepository.findByUsernameIgnoreCase(dto.getRequester());
         User receiver = userRepository.findByUsernameIgnoreCase(dto.getReceiver());
         User sender = userRepository.findByUsernameIgnoreCase(dto.getSender());
-        if (requester == null)
-            throw new NonExistentException("Nu ai cont.");
-        if (sender==null || receiver==null)
-            throw new NonExistentException("Userul nu exista.");
-        if(requester.getRole() != Role.Admin && (!Objects.equals(requester.getUsername(), receiver.getUsername()) && !Objects.equals(requester.getUsername(), sender.getUsername()))){
+        if (requester == null) throw new NonExistentException("Nu ai cont.");
+        if (sender == null || receiver == null) throw new NonExistentException("Userul nu exista.");
+        if (requester.getRole() != Role.Admin
+                && (!Objects.equals(requester.getUsername(), receiver.getUsername())
+                        && !Objects.equals(requester.getUsername(), sender.getUsername()))) {
             System.out.println(requester.getRole());
             System.out.println(!Objects.equals(requester.getUsername(), receiver.getUsername()));
             System.out.println(!Objects.equals(requester.getUsername(), sender.getUsername()));
             throw new UnauthorizedActionException("Nu ai permisiuni de a face asta.");
         }
-        List<Chat> chats = chatRepository.findAllBySenderNameAndReceiverName(dto.getSender(), dto.getReceiver());
-        chats.addAll(chatRepository.findAllBySenderNameAndReceiverName(dto.getReceiver(), dto.getSender()));
+        List<Chat> chats =
+                chatRepository.findAllBySenderNameAndReceiverName(
+                        dto.getSender(), dto.getReceiver());
+        chats.addAll(
+                chatRepository.findAllBySenderNameAndReceiverName(
+                        dto.getReceiver(), dto.getSender()));
         chats.sort(Comparator.comparing(Chat::getDate));
         String json = new Gson().toJson(chats);
         String nume = jsonFileParser.write(json, s3Service);
@@ -91,6 +98,7 @@ public class ChatService implements IChatService {
                                 s3Service.getFile(nume + ".json").getObjectContent()),
                         nume + ".json"));
     }
+
     @Override
     @Async
     public CompletableFuture<Boolean> send(ChatDTO chat, String receiver) {

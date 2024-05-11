@@ -46,7 +46,6 @@ public class GameService implements IGameService {
         this.s3Service = s3Service;
     }
 
-
     @Override
     @Async
     @Deprecated
@@ -345,7 +344,7 @@ public class GameService implements IGameService {
     public CompletableFuture<?> importMultiplayerGame(String gameId, MultipartFile file)
             throws IOException {
         MultiplayerGame multiplayerGame = multiplayerGameRepository.findByGameId(gameId);
-        if (scoreboardFileParser.read(multiplayerGame, file, s3Service,"multiplayer")) {
+        if (scoreboardFileParser.read(multiplayerGame, file, s3Service, "multiplayer")) {
             multiplayerGameRepository.deleteByGameId(gameId);
             multiplayerGameRepository.save(multiplayerGame);
             return CompletableFuture.completedFuture(multiplayerGame);

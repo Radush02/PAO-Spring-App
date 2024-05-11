@@ -45,7 +45,7 @@ export class FriendsComponent {
         this.requests = data;
       },
       (error) => {
-      this.showErrorDialog(error.error.split(': ')[1] || 'o7');
+      this.showErrorDialog(error.error || 'o7');
       }
     );
   }
@@ -56,7 +56,7 @@ export class FriendsComponent {
         this.friends = data;
       },
       (error) => {
-      this.showErrorDialog(error.error.split(': ')[1] || 'o7');
+      this.showErrorDialog(error.error || 'o7');
       }
     );
   }
@@ -67,7 +67,7 @@ export class FriendsComponent {
         this.sent = data;
       },
       (error) => {
-      this.showErrorDialog(error.error.split(': ')[1] || 'o7');
+      this.showErrorDialog(error.error || 'o7');
       }
     );
   }
@@ -82,18 +82,19 @@ export class FriendsComponent {
         location.reload();
       },
       (error) => {
-      this.showErrorDialog(error.error.split(': ')[1] || 'o7');
+      this.showErrorDialog(error.error || 'o7');
       }
     );
   }
 
   removeFriend(friend: string) {
-    this.friendsService.delete(friend).subscribe(
+    this.friendsService.delete({sender:this.user,receiver:friend}).subscribe(
       (data) => {
         location.reload();
       },
       (error) => {
-      this.showErrorDialog(error.error.split(': ')[1] || 'o7');
+        console.error(error);
+      this.showErrorDialog(error.error || 'o7');
       }
     );
   }
@@ -106,7 +107,7 @@ export class FriendsComponent {
           location.reload();
         },
         (error) => {
-        this.showErrorDialog(error.error.split(': ')[1] || 'o7');
+        this.showErrorDialog(error.error || 'o7');
         }
       );
   }
@@ -119,7 +120,7 @@ export class FriendsComponent {
           location.reload();
         },
         (error) => {
-        this.showErrorDialog(error.error.split(': ')[1] || 'o7');
+        this.showErrorDialog(error.error || 'o7');
         }
       );
   }
@@ -132,7 +133,7 @@ export class FriendsComponent {
           location.reload();
         },
         (error) => {
-        this.showErrorDialog(error.error.split(': ')[1] || 'o7');
+        this.showErrorDialog(error.error || 'o7');
         }
       );
   }

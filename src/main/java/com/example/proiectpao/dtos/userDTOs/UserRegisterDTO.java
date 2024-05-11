@@ -1,11 +1,10 @@
 package com.example.proiectpao.dtos.userDTOs;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-/*
-      DTO-ul contine datele necesare pentru inregistrare
-*/
+@Setter
 public class UserRegisterDTO {
     private String username;
     private String password;

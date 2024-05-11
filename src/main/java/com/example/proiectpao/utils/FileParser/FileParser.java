@@ -20,7 +20,8 @@ public abstract class FileParser {
      * @param s3 - S3
      * @return - true daca fisierul a fost citit cu succes, false altfel
      */
-    public abstract boolean read(Object user, MultipartFile file, S3Service s3,Object type) throws IOException;
+    public abstract boolean read(Object user, MultipartFile file, S3Service s3, Object type)
+            throws IOException;
 
     /**
      * Metoda abstracta write este folosita pentru a scrie un fisier
@@ -28,7 +29,6 @@ public abstract class FileParser {
      * @param s3 - S3
      * @return - numele fisierului scris
      */
-
     public abstract String write(Object data, S3Service s3) throws IOException;
 
     /**
@@ -43,7 +43,6 @@ public abstract class FileParser {
      * @param cls - tipul de FileParser (JsonFileParser sau ScoreboardFileParser)
      * @return - obiectul de tip FileParser
      */
-
     public static synchronized <T extends FileParser> T getInstance(Class<T> cls) {
         return cls.cast(
                 instances.computeIfAbsent(

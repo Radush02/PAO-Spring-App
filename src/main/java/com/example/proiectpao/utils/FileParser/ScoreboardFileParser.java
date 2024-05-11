@@ -27,7 +27,8 @@ public class ScoreboardFileParser extends FileParser {
     }
 
     @Override
-    public boolean read(Object game, MultipartFile file, S3Service s3,Object type) throws IOException {
+    public boolean read(Object game, MultipartFile file, S3Service s3, Object type)
+            throws IOException {
         try {
             InputStream is = file.getInputStream();
             String content = IOUtils.toString(is, StandardCharsets.UTF_8).strip();
@@ -66,13 +67,14 @@ public class ScoreboardFileParser extends FileParser {
                 multiplayerGame.getUserStats().put(playerStats[0].trim(), stats);
             }
             return true;
-        }catch(com.amazonaws.services.kms.model.NotFoundException e){
+        } catch (com.amazonaws.services.kms.model.NotFoundException e) {
             throw new NotFoundException("Nu exista fisierul in baza noastra de date.");
-        }
-        catch (com.amazonaws.SdkClientException e) {
-            throw new NonExistentException("Eroare AWS. Verifica conexiunea la internet." + e.getMessage());
+        } catch (com.amazonaws.SdkClientException e) {
+            throw new NonExistentException(
+                    "Eroare AWS. Verifica conexiunea la internet." + e.getMessage());
         }
     }
+
     /**
      * Metoda ScoreboardFileParser.write este folosita pentru a scrie un fisier de tip .sb
      * @param data datele care trebuie scrise
@@ -148,13 +150,9 @@ public class ScoreboardFileParser extends FileParser {
                                         + multiplayerGame.getUserStats().get(u).getHeadshots()
                                                 * 1.5)
                         .append(" | ")
-                        .append(
-                                multiplayerGame.getUserStats().get(u).getHits())
+                        .append(multiplayerGame.getUserStats().get(u).getHits())
                         .append(" | ")
-                        .append(
-                                multiplayerGame.getUserStats().get(u).isWin()
-                        )
-
+                        .append(multiplayerGame.getUserStats().get(u).isWin())
                         .append("\n");
             }
             RandomNameGenerator r = RandomNameGenerator.getInstance();

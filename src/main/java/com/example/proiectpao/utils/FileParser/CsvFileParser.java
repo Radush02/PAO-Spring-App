@@ -4,18 +4,18 @@ import com.amazonaws.services.kms.model.NotFoundException;
 import com.amazonaws.services.s3.model.S3Object;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.S3Service.S3Service;
-import org.apache.commons.io.IOUtils;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-public class CsvFileParser extends FileParser{
+public class CsvFileParser extends FileParser {
 
     @Override
-    public boolean read(Object user, MultipartFile file, S3Service s3, Object type) throws IOException {
-        try{
+    public boolean read(Object user, MultipartFile file, S3Service s3, Object type)
+            throws IOException {
+        try {
             InputStream is = file.getInputStream();
             S3Object s3obj = s3.getFile(file.getOriginalFilename());
             String csv = IOUtils.toString(is, StandardCharsets.UTF_8);
@@ -23,11 +23,11 @@ public class CsvFileParser extends FileParser{
             if (!csv.equals(S3csv)) {
                 throw new NonExistentException("Continutul back-up-ului a fost modificat!");
             }
-        }catch(com.amazonaws.services.kms.model.NotFoundException e){
+        } catch (com.amazonaws.services.kms.model.NotFoundException e) {
             throw new NotFoundException("Nu exista fisierul in baza noastra de date.");
-        }
-        catch (com.amazonaws.SdkClientException e) {
-            throw new NonExistentException("Eroare AWS. Verifica conexiunea la internet. " + e.getMessage());
+        } catch (com.amazonaws.SdkClientException e) {
+            throw new NonExistentException(
+                    "Eroare AWS. Verifica conexiunea la internet. " + e.getMessage());
         }
         return false;
     }

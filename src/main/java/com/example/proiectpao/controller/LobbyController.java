@@ -8,7 +8,6 @@ import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.LobbyService.ILobbyService;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,8 +66,7 @@ public class LobbyController {
      */
     @GetMapping("/inLobby/{username}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> inLobby(@PathVariable String username)
-             {
+    public ResponseEntity<?> inLobby(@PathVariable String username) {
         try {
             CompletableFuture<String> l = lobbyService.inLobby(username);
             return new ResponseEntity<>(l.get(), HttpStatus.OK);
@@ -85,7 +83,7 @@ public class LobbyController {
      */
     @GetMapping("/inLobby/{lobby}/{username}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> inLobby(@PathVariable String lobby, @PathVariable String username){
+    public ResponseEntity<?> inLobby(@PathVariable String lobby, @PathVariable String username) {
         try {
             CompletableFuture<Boolean> l = lobbyService.inLobby(lobby, username);
             return new ResponseEntity<>(l.get(), HttpStatus.OK);
@@ -100,7 +98,7 @@ public class LobbyController {
      */
     @GetMapping("/getLobbies")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> getLobbies(){
+    public ResponseEntity<?> getLobbies() {
         try {
             CompletableFuture<?> l = lobbyService.getLobbies();
             return new ResponseEntity<>(l.get(), HttpStatus.OK);
@@ -116,7 +114,7 @@ public class LobbyController {
      */
     @PostMapping("/join")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> joinLobby(@RequestBody JoinLobbyDTO lobbyDTO){
+    public ResponseEntity<?> joinLobby(@RequestBody JoinLobbyDTO lobbyDTO) {
         try {
             CompletableFuture<Lobby> l = lobbyService.joinLobby(lobbyDTO);
             return new ResponseEntity<>(l.get(), HttpStatus.OK);

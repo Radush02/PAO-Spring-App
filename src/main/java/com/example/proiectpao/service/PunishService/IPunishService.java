@@ -30,6 +30,7 @@ public interface IPunishService {
      */
     @Async
     CompletableFuture<Boolean> assignRole(AssignRoleDTO userRoleDTO);
+
     /**
      * Metoda ban interzice unui utilizator sa faca orice actiune
      * @param ban (DTO-ul ce contine username-ul, adminul, motivul pentru care a fost banat si data la care expira sanctiunea)

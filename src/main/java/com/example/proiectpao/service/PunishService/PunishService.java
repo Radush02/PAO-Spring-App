@@ -169,7 +169,6 @@ public class PunishService implements IPunishService {
         }
     }
 
-
     @Override
     @Async
     public CompletableFuture<?> unban(String user, String admin) {

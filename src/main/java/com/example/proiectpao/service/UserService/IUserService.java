@@ -62,6 +62,7 @@ public interface IUserService {
      */
     @Async
     CompletableFuture<Boolean> uploadStats(String user, MultipartFile file);
+
     /**
      * Metoda getFriends returneaza lista de prieteni a unui utilizator.
      * @param username numele utilizatorului

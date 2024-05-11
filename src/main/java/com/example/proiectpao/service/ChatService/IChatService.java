@@ -3,13 +3,11 @@ package com.example.proiectpao.service.ChatService;
 import com.example.proiectpao.dtos.ChatDTO;
 import com.example.proiectpao.dtos.ImportMessageDTO;
 import com.example.proiectpao.dtos.MessageDTO;
-
+import com.example.proiectpao.dtos.MessageExportDTO;
+import com.example.proiectpao.utils.Pair;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
-import com.example.proiectpao.dtos.MessageExportDTO;
-import com.example.proiectpao.utils.Pair;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 
@@ -37,6 +35,7 @@ public interface IChatService {
      */
     @Async
     CompletableFuture<Boolean> send(ChatDTO chat, String receiver);
+
     /**
      * Primeste un mesaj.
      * @param senderName numele celui cu care user-ul vorbeste

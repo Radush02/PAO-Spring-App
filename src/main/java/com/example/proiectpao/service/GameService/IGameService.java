@@ -71,11 +71,12 @@ public interface IGameService {
      * @param attackerCaptain Numele capitanului din echipa A
      * @param defenderCaptain Numele jucatorului din echipa B
      * @return ID-ul meciului
-
+     *
      * @see <a href="https://cs.money/blog/esports/what-is-mr12-in-cs2-mr15-vs-mr12-compared">MR12 explicat</a>
      */
     @Async
     CompletableFuture<String> attackTeam(String attackerCaptain, String defenderCaptain);
+
     /**
      * Exporta un joc multiplayer.<br>
      * Extensia fisierului este de tip .sb<br>

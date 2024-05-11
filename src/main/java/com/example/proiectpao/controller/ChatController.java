@@ -7,11 +7,9 @@ import com.example.proiectpao.dtos.MessageExportDTO;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
 import com.example.proiectpao.service.ChatService.IChatService;
+import com.example.proiectpao.utils.Pair;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import com.example.proiectpao.utils.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -91,7 +89,8 @@ public class ChatController {
      */
     @GetMapping("/receive")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<?> receive(@RequestParam String senderName, @RequestParam String username){
+    public ResponseEntity<?> receive(
+            @RequestParam String senderName, @RequestParam String username) {
         try {
             CompletableFuture<List<MessageDTO>> chatDTOs =
                     chatService.receive(senderName, username);
@@ -115,7 +114,11 @@ public class ChatController {
      */
     @PostMapping("/upload")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("requester") String requester, @RequestParam("sender") String sender, @RequestParam("receiver") String receiver) {
+    public ResponseEntity<?> upload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("requester") String requester,
+            @RequestParam("sender") String sender,
+            @RequestParam("receiver") String receiver) {
         try {
             ImportMessageDTO messageDTO = new ImportMessageDTO();
             messageDTO.setRequester(requester);

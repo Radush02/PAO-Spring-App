@@ -1,6 +1,5 @@
 package com.example.proiectpao.dtos;
 
-
 import lombok.Getter;
 import lombok.Setter;
 

@@ -115,7 +115,6 @@ public class UserService implements IUserService {
         return CompletableFuture.completedFuture(userRepository.save(u));
     }
 
-
     @Override
     @Async
     public CompletableFuture<UserDTO> login(UserLoginDTO userLoginDTO) {
@@ -168,7 +167,6 @@ public class UserService implements IUserService {
         throw new NonExistentException("Userul nu exista sau parola incorecta.");
     }
 
-
     @Override
     @Async
     public CompletableFuture<UserDTO> displayUser(String username) {
@@ -209,7 +207,7 @@ public class UserService implements IUserService {
         if (file.getContentType() == null || !file.getContentType().equals("application/json")) {
             throw new NonExistentException("Fisierul nu este de tip JSON.");
         }
-        if (jsonFileParser.read(k, file, s3Service,userRepository)) {
+        if (jsonFileParser.read(k, file, s3Service, userRepository)) {
             userRepository.save(k);
             return CompletableFuture.completedFuture(true);
         }
