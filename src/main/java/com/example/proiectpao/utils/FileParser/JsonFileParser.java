@@ -1,26 +1,25 @@
 package com.example.proiectpao.utils.FileParser;
 
 import com.amazonaws.services.kms.model.NotFoundException;
-import com.amazonaws.services.s3.model.S3Object;
 import com.example.proiectpao.collection.Chat;
 import com.example.proiectpao.collection.Stats;
 import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.userDTOs.ExportDTO;
+import com.example.proiectpao.dtos.userDTOs.StatsDTO;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.repository.ChatRepository;
 import com.example.proiectpao.repository.UserRepository;
 import com.example.proiectpao.service.S3Service.S3Service;
-import com.example.proiectpao.utils.RandomGenerator.RandomNameGenerator;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import java.io.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import org.apache.commons.io.IOUtils;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
 public class JsonFileParser extends FileParser {
 
@@ -28,44 +27,13 @@ public class JsonFileParser extends FileParser {
     public boolean read(Object user, MultipartFile file, S3Service s3, Object type) {
         try {
 
-            InputStream is = file.getInputStream();
-            S3Object s3obj = s3.getFile(file.getOriginalFilename());
-            System.out.println("ok");
-            String json = IOUtils.toString(is, StandardCharsets.UTF_8);
-            String s3Json = IOUtils.toString(s3obj.getObjectContent(), StandardCharsets.UTF_8);
-            if (!json.equals(s3Json)) {
-                System.out.println(json);
-                System.out.println(s3Json);
-                // System.out.println("Continutul back-up-ului a fost modificat!");
+            String s3Json = getS3FileContent(file.getOriginalFilename(), s3);
+            String json = getFileContent(file);
+            if (!json.equals(s3Json))
                 throw new NonExistentException("Continutul back-up-ului a fost modificat!");
-            }
 
-            if (type instanceof UserRepository) {
-                ExportDTO u = new Gson().fromJson(json, ExportDTO.class);
-                User k = (User) user;
-                if (!Objects.equals(u.getUserDTO().getName(), k.getName())) {
-                    System.out.println(u.getUserDTO().getName() + " " + k.getName());
-                    throw new NonExistentException(
-                            "Numele userului nu corespunde cu cel din fisier");
-                }
-                k.setStats(
-                        Stats.builder()
-                                .kills(u.getUserDTO().getStats().getKills())
-                                .deaths(u.getUserDTO().getStats().getDeaths())
-                                .wins(u.getUserDTO().getStats().getWins())
-                                .losses(u.getUserDTO().getStats().getLosses())
-                                .headshots(u.getUserDTO().getStats().getHeadshots())
-                                .hits(u.getUserDTO().getStats().getHits())
-                                .build());
-                k.setGameIDs(u.getGameIDs());
-                ((UserRepository) type).save(k);
-                return true;
-            } else if (type instanceof ChatRepository) {
-                Type listType = new TypeToken<List<Chat>>() {}.getType();
-                List<Chat> l = new Gson().fromJson(json, listType);
-                ((ChatRepository) type).saveAll(l);
-                return true;
-            }
+            parseAndSaveData(json, user, type);
+
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -86,18 +54,61 @@ public class JsonFileParser extends FileParser {
      */
     @Override
     public String write(Object userJson, S3Service s3) throws IOException {
-        RandomNameGenerator r = RandomNameGenerator.getInstance();
-        String fileName = r.generateName();
-        File temp = File.createTempFile("temp", ".json");
-        try (FileOutputStream fos = new FileOutputStream(temp)) {
-            fos.write(userJson.toString().getBytes());
+        String fileName = generateFileName();
+        File tempFile = createTempFile(userJson,".json");
+
+        try (FileInputStream input = new FileInputStream(tempFile)) {
+            MultipartFile multipartFile = createMultipartFile(tempFile, input);
+            s3.uploadFile(fileName + ".json", multipartFile);
+        } finally {
+            tempFile.delete();
         }
-        FileInputStream input = new FileInputStream(temp);
-        MultipartFile multipartFile =
-                new MockMultipartFile(
-                        "fileItem", temp.getName(), "application/json", IOUtils.toByteArray(input));
-        s3.uploadFile(fileName + ".json", multipartFile);
-        temp.delete();
+
         return fileName;
     }
+
+
+
+    private void parseAndSaveData(String json, Object user, Object type) {
+        if (type instanceof UserRepository) {
+            saveUserData(json, user, (UserRepository) type);
+        } else if (type instanceof ChatRepository) {
+            saveChatData(json, (ChatRepository) type);
+        }
+    }
+
+
+    private void saveUserData(String json, Object user, UserRepository userRepository) {
+        ExportDTO exportDTO = new Gson().fromJson(json, ExportDTO.class);
+        User u = (User) user;
+
+        if (!Objects.equals(exportDTO.getUserDTO().getName(), u.getName())) {
+            throw new NonExistentException("Numele userului nu corespunde cu cel din fisier.");
+        }
+
+        u.setStats(convertToStats(exportDTO.getUserDTO().getStats()));
+        u.setGameIDs(exportDTO.getGameIDs());
+        userRepository.save(u);
+    }
+
+    private Stats convertToStats(StatsDTO stats) {
+        return Stats.builder()
+                .kills(stats.getKills())
+                .deaths(stats.getDeaths())
+                .wins(stats.getWins())
+                .losses(stats.getLosses())
+                .headshots(stats.getHeadshots())
+                .hits(stats.getHits())
+                .build();
+    }
+
+    private void saveChatData(String json, ChatRepository chatRepository) {
+        Type listType = new TypeToken<List<Chat>>() {}.getType();
+        List<Chat> chats = new Gson().fromJson(json, listType);
+        chatRepository.saveAll(chats);
+    }
+
+
+
+
 }

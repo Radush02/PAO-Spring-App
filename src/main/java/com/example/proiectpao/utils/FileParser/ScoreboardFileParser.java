@@ -1,24 +1,23 @@
 package com.example.proiectpao.utils.FileParser;
 
-import static java.lang.Math.max;
-
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.example.proiectpao.collection.MultiplayerGame;
 import com.example.proiectpao.collection.MultiplayerUserStats;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.service.S3Service.S3Service;
-import com.example.proiectpao.utils.RandomGenerator.RandomNameGenerator;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.io.IOUtils;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
+
+import static java.lang.Math.max;
 
 @Component
 public class ScoreboardFileParser extends FileParser {
@@ -30,18 +29,11 @@ public class ScoreboardFileParser extends FileParser {
     public boolean read(Object game, MultipartFile file, S3Service s3, Object type)
             throws IOException {
         try {
-            InputStream is = file.getInputStream();
-            String content = IOUtils.toString(is, StandardCharsets.UTF_8).strip();
-            String s3Content =
-                    IOUtils.toString(
-                                    s3.getFile(file.getOriginalFilename()).getObjectContent(),
-                                    StandardCharsets.UTF_8)
-                            .strip();
-            if (!content.equals(s3Content)) {
-                System.out.println(content);
-                System.out.println(s3Content);
+            String content = getFileContent(file);
+            String s3Content = getS3FileContent(file.getOriginalFilename(), s3);
+            if (!content.equals(s3Content))
                 throw new IOException("Continutul back-up-ului a fost modificat!");
-            }
+
             MultiplayerGame multiplayerGame = (MultiplayerGame) game;
             String[] lines = content.split("\n");
             multiplayerGame.setGameId(lines[0]);
@@ -85,7 +77,6 @@ public class ScoreboardFileParser extends FileParser {
     public String write(Object data, S3Service s3) throws IOException {
         try {
             MultiplayerGame multiplayerGame = (MultiplayerGame) data;
-            System.out.println(multiplayerGame);
             sortUserStats(multiplayerGame);
 
             StringBuilder continut =
@@ -155,19 +146,10 @@ public class ScoreboardFileParser extends FileParser {
                         .append(multiplayerGame.getUserStats().get(u).isWin())
                         .append("\n");
             }
-            RandomNameGenerator r = RandomNameGenerator.getInstance();
-            String fileName = r.generateName();
-            File temp = File.createTempFile("temp", ".sb");
-            try (FileOutputStream fos = new FileOutputStream(temp)) {
-                fos.write(continut.toString().getBytes());
-            }
+            String fileName = generateFileName();
+            File temp = createTempFile(continut.toString(), ".sb");
             FileInputStream input = new FileInputStream(temp);
-            MultipartFile multipartFile =
-                    new MockMultipartFile(
-                            "fileItem",
-                            temp.getName(),
-                            "application/txt",
-                            IOUtils.toByteArray(input));
+            MultipartFile multipartFile = createMultipartFile(temp, input);
             s3.uploadFile(fileName + ".sb", multipartFile);
             temp.delete();
             return fileName;
@@ -189,7 +171,7 @@ public class ScoreboardFileParser extends FileParser {
                                                 (e2.getValue().getKills() * 2
                                                         + e2.getValue().getHeadshots() * 1.5
                                                         - e1.getValue().getKills() * 2
-                                                        + e1.getValue().getHeadshots() * 1.5);
+                                                        - e1.getValue().getHeadshots() * 1.5);
                                     }
                                     if (e1.getValue().getKills() != e2.getValue().getKills()) {
                                         return e2.getValue().getKills() - e1.getValue().getKills();

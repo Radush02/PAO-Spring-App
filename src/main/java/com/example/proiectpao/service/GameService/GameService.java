@@ -352,55 +352,62 @@ public class GameService implements IGameService {
         throw new NonExistentException("Eroare la citirea fisierului");
     }
 
+    /**
+     *
+     * @param winner Lobby-ul ce contine membrii echipei castigatoare
+     * @param loser Lobby-ul ce contine membrii echipei pierzatoare
+     * @param multiplayerGame Rezultatele meciului
+     */
     private void addGameResult(Lobby winner, Lobby loser, MultiplayerGame multiplayerGame) {
         for (String w : winner.getPlayers()) {
             User u = userRepository.findByUsernameIgnoreCase(w);
             u.addWin();
-            u.setStats(
-                    Stats.builder()
-                            .wins(u.getStats().getWins())
-                            .losses(u.getStats().getLosses())
-                            .kills(
-                                    u.getStats().getKills()
-                                            + multiplayerGame.getUserStats().get(w).getKills())
-                            .hits(
-                                    u.getStats().getHits()
-                                            + multiplayerGame.getUserStats().get(w).getHits())
-                            .headshots(
-                                    u.getStats().getHeadshots()
-                                            + multiplayerGame.getUserStats().get(w).getHeadshots())
-                            .deaths(
-                                    u.getStats().getDeaths()
-                                            + multiplayerGame.getUserStats().get(w).getDeaths())
-                            .build());
-            u.addGame(multiplayerGame.getGameId());
-            userRepository.save(u);
+            addUserResult(multiplayerGame, w, u);
         }
         for (String w : loser.getPlayers()) {
             User u = userRepository.findByUsernameIgnoreCase(w);
             u.addLoss();
-            u.setStats(
-                    Stats.builder()
-                            .wins(u.getStats().getWins())
-                            .losses(u.getStats().getLosses())
-                            .kills(
-                                    u.getStats().getKills()
-                                            + multiplayerGame.getUserStats().get(w).getKills())
-                            .hits(
-                                    u.getStats().getHits()
-                                            + multiplayerGame.getUserStats().get(w).getHits())
-                            .headshots(
-                                    u.getStats().getHeadshots()
-                                            + multiplayerGame.getUserStats().get(w).getHeadshots())
-                            .deaths(
-                                    u.getStats().getDeaths()
-                                            + multiplayerGame.getUserStats().get(w).getDeaths())
-                            .build());
-            u.addGame(multiplayerGame.getGameId());
-            userRepository.save(u);
+            addUserResult(multiplayerGame, w, u);
         }
     }
 
+    /**
+     * Atribuie statisticile unui user dupa ce s-a terminat meciul
+     * @param multiplayerGame Rezultatele meciului
+     * @param w - Numele playerului
+     * @param u - Userul
+     */
+    private void addUserResult(MultiplayerGame multiplayerGame, String w, User u) {
+        u.setStats(
+                Stats.builder()
+                        .wins(u.getStats().getWins())
+                        .losses(u.getStats().getLosses())
+                        .kills(
+                                u.getStats().getKills()
+                                        + multiplayerGame.getUserStats().get(w).getKills())
+                        .hits(
+                                u.getStats().getHits()
+                                        + multiplayerGame.getUserStats().get(w).getHits())
+                        .headshots(
+                                u.getStats().getHeadshots()
+                                        + multiplayerGame.getUserStats().get(w).getHeadshots())
+                        .deaths(
+                                u.getStats().getDeaths()
+                                        + multiplayerGame.getUserStats().get(w).getDeaths())
+                        .build());
+        u.addGame(multiplayerGame.getGameId());
+        userRepository.save(u);
+    }
+
+    /**
+     * Functie care calculeaza rezultatul unui atac
+     * @param attacker - Castigatorul
+     * @param defender - Pierzatorul
+     * @param attacker_score - Retine nr de runde
+     * @param attacker_roll - Numarul random al castigatorului pt a determina statisticile finale
+     * @param defender_roll - Numarul random al pierzatorului pt a determina statisticile finale
+     * @return
+     */
     private int attackHelper(
             User attacker,
             User defender,

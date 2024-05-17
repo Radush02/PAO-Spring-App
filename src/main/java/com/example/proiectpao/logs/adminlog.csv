@@ -138,3 +138,7 @@ User,Role,Action
 "testuser", Admin", a incercat sa debaneze pe , "testuser10", de la 2024-05-10T15:46:09.727055500"
 "testuser2", Admin", Logged in @ 2024-05-10T15:53:15.078397200"
 "testuser2", Admin", Logged in @ 2024-05-10T15:58:48.012482800"
+"testuser", Admin", Logged in @ 2024-05-13T17:27:12.141848200"
+"testuser2", Admin", Logged in @ 2024-05-13T17:27:36.960047400"
+"testuser", Admin", Logged in @ 2024-05-17T13:20:54.847230900"
+"testuser", Admin", Logged in @ 2024-05-17T13:56:10.064472800"
