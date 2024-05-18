@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * Clasa Stats reprezinta statisticile unui utilizator.<br>
  * Statisticile contin numarul de victorii, infrangeri, hit-uri, headshot-uri, kill-uri si decese.
- * @Author Radu
  */
 @Data
 @Builder

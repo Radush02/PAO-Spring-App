@@ -60,7 +60,6 @@ Aplicatia porneste la adresa: ``http://localhost:4200/``
 - Utilizatorii se pot inregistra si loga. 
 - Parola este criptata folosind SHA-256 inainte de a fi stocata in baza de date.
 - Pentru simplicitate, nu se creeaza semnaturi precum JWT, ci se salveaza direct datele userului ca cookies.
-- - Deoarece ideea principala a proiectului a fost sa se foloseasca principii POO, nu m-am focusat pe securitate. Asa  ceva nu se va folosi niciodata in prod!
 - In cazul in care userul nu este logat, nu poate accesa anumite pagini.
 ```java
 //UserService.Java
@@ -252,3 +251,4 @@ protected String getS3FileContent(String fileName, S3Service s3) throws IOExcept
 - Orice actiune a unui admin este logata intr-un fisier .csv
 - Administratorii pot extrage oricand acel fisier pentru a verifica actiunile atat a lor cat si a altor administratori.
 - Din admin panel, administratorii pot folosi fisiere trimise de useri pentru a aplica back-up-uri la chat-uri sau meciuri.
+- In cazul unei sanctiuni acordate gresit, administratorul/moderatorul poate da revert la actiune doar specificand username-ul.

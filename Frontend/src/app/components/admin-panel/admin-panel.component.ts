@@ -47,6 +47,17 @@ export class AdminPanelComponent {
     });
 
   }
+
+  revertPunishment(){
+    const usr = (document.getElementById('revertUsername') as HTMLInputElement).value;
+    const date = (document.getElementById('revertDate') as HTMLInputElement).value;
+    console.log(date);
+    this.punishService.revertAction({admin:this.user,user:usr,date:date}).subscribe(response=>{
+      alert(response);
+    },      (error) => {
+      alert(error.error.split(': ')[1]);
+    });
+  }
   uploadBackup(){
     const fileInput = document.getElementById('backupFile') as HTMLInputElement;
     const button = document.getElementById('chatBackup') as HTMLButtonElement;

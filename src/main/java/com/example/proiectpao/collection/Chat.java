@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * Clasa Chat reprezinta un mesaj trimis de un utilizator catre altul.<br>
  * Un chat contine un id, data la care a fost trimis, mesajul in sine, numele celui care l-a trimis si numele celui care l-a primit.
- * @author Radu
  */
 @Data
 @Builder

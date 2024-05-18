@@ -3,13 +3,16 @@ package com.example.proiectpao.service.UserService;
 import static com.example.proiectpao.enums.Role.Admin;
 import static com.example.proiectpao.enums.Role.Moderator;
 
+import com.example.proiectpao.collection.AdminLog;
 import com.example.proiectpao.collection.Stats;
 import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.userDTOs.*;
+import com.example.proiectpao.enums.Actions;
 import com.example.proiectpao.enums.Penalties;
 import com.example.proiectpao.exceptions.AlreadyExistsException;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
+import com.example.proiectpao.repository.AdminLogRepository;
 import com.example.proiectpao.repository.PunishRepository;
 import com.example.proiectpao.repository.UserRepository;
 import com.example.proiectpao.service.S3Service.S3Service;
@@ -36,12 +39,17 @@ public class UserService implements IUserService {
     private final S3Service s3Service;
     private final PunishRepository punishRepository;
     private final JsonFileParser jsonFileParser;
+    private final AdminLogRepository adminLogRepository;
 
     public UserService(
-            UserRepository userRepository, S3Service s3Service, PunishRepository punishRepository) {
+            UserRepository userRepository,
+            S3Service s3Service,
+            PunishRepository punishRepository,
+            AdminLogRepository adminLogRepository) {
         this.userRepository = userRepository;
         this.s3Service = s3Service;
         this.punishRepository = punishRepository;
+        this.adminLogRepository = adminLogRepository;
         this.jsonFileParser = FileParser.getInstance(JsonFileParser.class);
     }
 
@@ -144,6 +152,7 @@ public class UserService implements IUserService {
             String encodedHash = Base64.getEncoder().encodeToString(hashedPassword);
             if (encodedHash.equals(k.getHash())) {
                 if (k.getRole() == Admin || k.getRole() == Moderator) {
+                    adminLogRepository.save(new AdminLog(k.getUsername(), Actions.Login));
                     try (FileWriter fw =
                             new FileWriter(
                                     "src/main/java/com/example/proiectpao/logs/adminlog.csv",

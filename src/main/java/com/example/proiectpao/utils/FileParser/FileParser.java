@@ -2,13 +2,11 @@ package com.example.proiectpao.utils.FileParser;
 
 import com.amazonaws.services.s3.model.S3Object;
 import com.example.proiectpao.service.S3Service.S3Service;
-
+import com.example.proiectpao.utils.RandomGenerator.RandomNameGenerator;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.example.proiectpao.utils.RandomGenerator.RandomNameGenerator;
 import org.apache.commons.io.IOUtils;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public abstract class FileParser {
     private static final Map<Class<? extends FileParser>, FileParser> instances = new HashMap<>();
+
     /**
      * Metoda abstracta read este folosita pentru a citi un fisier
      * @param user - Fie userul (folosit pt JSON), fie lista de useri, folosita pt a extrage rezultatele meciului final
@@ -52,7 +51,7 @@ public abstract class FileParser {
                                 return new JsonFileParser();
                             } else if (cls == ScoreboardFileParser.class) {
                                 return new ScoreboardFileParser();
-                            }else if (cls == CsvFileParser.class) {
+                            } else if (cls == CsvFileParser.class) {
                                 return new CsvFileParser();
                             }
                             throw new IllegalArgumentException("Nu pot instantia " + cls.getName());
@@ -116,7 +115,8 @@ public abstract class FileParser {
      * @return - obiectul de tip MultipartFile
      * @throws IOException - exceptie in cazul in care fisierul nu poate fi citit
      */
-    protected MultipartFile createMultipartFile(File tempFile, FileInputStream input) throws IOException {
+    protected MultipartFile createMultipartFile(File tempFile, FileInputStream input)
+            throws IOException {
         return new MockMultipartFile(
                 "fileItem", tempFile.getName(), "application/json", IOUtils.toByteArray(input));
     }

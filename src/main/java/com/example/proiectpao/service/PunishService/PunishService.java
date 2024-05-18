@@ -2,14 +2,17 @@ package com.example.proiectpao.service.PunishService;
 
 import static com.example.proiectpao.enums.Role.Admin;
 
+import com.example.proiectpao.collection.AdminLog;
 import com.example.proiectpao.collection.Punish;
 import com.example.proiectpao.collection.User;
 import com.example.proiectpao.dtos.PunishDTO;
 import com.example.proiectpao.dtos.userDTOs.AssignRoleDTO;
+import com.example.proiectpao.enums.Actions;
 import com.example.proiectpao.enums.Penalties;
 import com.example.proiectpao.enums.Role;
 import com.example.proiectpao.exceptions.NonExistentException;
 import com.example.proiectpao.exceptions.UnauthorizedActionException;
+import com.example.proiectpao.repository.AdminLogRepository;
 import com.example.proiectpao.repository.PunishRepository;
 import com.example.proiectpao.repository.UserRepository;
 import java.io.FileInputStream;
@@ -32,10 +35,15 @@ public class PunishService implements IPunishService {
 
     private final UserRepository userRepository;
     private final PunishRepository punishRepository;
+    private final AdminLogRepository adminLogRepository;
 
-    public PunishService(UserRepository userRepository, PunishRepository punishRepository) {
+    public PunishService(
+            UserRepository userRepository,
+            PunishRepository punishRepository,
+            AdminLogRepository adminLogRepository) {
         this.userRepository = userRepository;
         this.punishRepository = punishRepository;
+        this.adminLogRepository = adminLogRepository;
     }
 
     @Override
@@ -59,6 +67,8 @@ public class PunishService implements IPunishService {
                         .expiryDate(mute.getExpiryDate())
                         .build();
         trackAction("i-a dat mute lui ", a, u, mute.getExpiryDate());
+        this.adminLogRepository.save(
+                new AdminLog(a.getUsername(), u.getUsername(), Actions.Mute, mute.getExpiryDate()));
         punishRepository.save(p);
         return CompletableFuture.completedFuture(true);
     }
@@ -81,6 +91,7 @@ public class PunishService implements IPunishService {
                         .sanction(Penalties.Warn)
                         .build();
         trackAction("a acordat warn lui ", a, u, null);
+        this.adminLogRepository.save(new AdminLog(a.getUsername(), u.getUsername(), Actions.Warn));
         if (punishRepository.findByUserIDAndSanction(u.getUserId(), Penalties.Warn) != null) {
             punishRepository.delete(
                     punishRepository.findByUserIDAndSanction(u.getUserId(), Penalties.Warn));
@@ -120,6 +131,8 @@ public class PunishService implements IPunishService {
         }
         System.out.println(userRoleDTO.getRole());
         trackAction("a atribuit rolul de " + userRoleDTO.getRole() + " lui ", adm, k, null);
+        this.adminLogRepository.save(
+                new AdminLog(adm.getUsername(), k.getUsername(), Actions.AssignedRole));
         userRepository.save(k);
         return CompletableFuture.completedFuture(true);
     }
@@ -143,6 +156,8 @@ public class PunishService implements IPunishService {
                         .sanction(Penalties.Ban)
                         .build();
         trackAction("a banat pe", a, u, ban.getExpiryDate());
+        this.adminLogRepository.save(
+                new AdminLog(a.getUsername(), u.getUsername(), Actions.Ban, ban.getExpiryDate()));
         punishRepository.save(p);
         return CompletableFuture.completedFuture(true);
     }
@@ -185,6 +200,8 @@ public class PunishService implements IPunishService {
         for (Punish p : pnsh) {
             punishRepository.delete(p);
             trackAction("a debanat pe ", a, u, null);
+            this.adminLogRepository.save(
+                    new AdminLog(a.getUsername(), u.getUsername(), Actions.Unban));
         }
         if (!pnsh.isEmpty()) {
             response.put("message", "A primit unban");
@@ -215,6 +232,7 @@ public class PunishService implements IPunishService {
                             + java.time.LocalDateTime.now()
                             + "\"";
             fw.write(w);
+            this.adminLogRepository.save(new AdminLog(a.getUsername(), Actions.Export));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -246,6 +264,8 @@ public class PunishService implements IPunishService {
         for (Punish p : pnsh) {
             punishRepository.delete(p);
             trackAction("a dat unmute lui ", a, u, null);
+            this.adminLogRepository.save(
+                    new AdminLog(a.getUsername(), u.getUsername(), Actions.Unmute));
         }
         if (!pnsh.isEmpty()) {
             response.put("message", "A primit unmute");
@@ -254,5 +274,82 @@ public class PunishService implements IPunishService {
         trackAction("a incercat sa dea unmute ", a, u, null);
         response.put("message", "Nu e muted");
         return CompletableFuture.completedFuture(response);
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<?> revertAction(String user, String admin) {
+        return revertAction(user, admin, null);
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<?> revertAction(String user, String admin, Date expiryDate) {
+        User u = userRepository.findByUsernameIgnoreCase(user);
+        User a = userRepository.findByUsernameIgnoreCase(admin);
+
+        if (u == null || a == null) {
+            throw new NonExistentException("Userul sau adminul nu exista.");
+        } else if (a.getRole() != Role.Admin && a.getRole() != Role.Moderator) {
+            throw new UnauthorizedActionException("Nu ai suficiente permisiuni.");
+        }
+
+        Map<String, String> response = new HashMap<>();
+        List<AdminLog> actions =
+                adminLogRepository.findAllByAdminAndUser(a.getUsername(), u.getUsername());
+
+        actions.removeIf(adminLog -> !isValidAction(adminLog.getAction(), expiryDate));
+
+        if (actions.isEmpty()) {
+            response.put(
+                    "message",
+                    "Acest admin nu a interacitonat cu acel user. Asigura-te ca nu dai revert la"
+                            + " revert.");
+            return CompletableFuture.completedFuture(response);
+        }
+
+        AdminLog lastAction = actions.getLast();
+
+        handleRevertAction(lastAction.getAction(), u, a, expiryDate, response);
+
+        adminLogRepository.save(new AdminLog(a.getUsername(), u.getUsername(), Actions.Revert));
+        trackAction("A anulat/restaurat sanctiunea lui", a, u, expiryDate);
+
+        return CompletableFuture.completedFuture(response);
+    }
+
+    private boolean isValidAction(Actions action, Date expiryDate) {
+        if (expiryDate == null) {
+            return action == Actions.Mute || action == Actions.Ban || action == Actions.Warn;
+        } else {
+            return action == Actions.Unmute || action == Actions.Unban;
+        }
+    }
+
+    private void handleRevertAction(
+            Actions action, User u, User a, Date expiryDate, Map<String, String> response) {
+        switch (action) {
+            case Mute -> {
+                unmute(u.getUsername(), a.getUsername());
+                response.put("message", "A fost dat unmute");
+            }
+            case Ban -> {
+                unban(u.getUsername(), a.getUsername());
+                response.put("message", "A fost dat unban");
+            }
+            case Warn -> {
+                punishRepository.delete(
+                        punishRepository.findByUserIDAndSanction(u.getUserId(), Penalties.Warn));
+                response.put("message", "A fost sters warn-ul");
+            }
+            case Unban -> {
+                ban(new PunishDTO(u.getUsername(), a.getUsername(), "Revert", expiryDate));
+                response.put("message", "A fost dat ban");
+            }
+            case Unmute -> {
+                mute(new PunishDTO(u.getUsername(), a.getUsername(), "Revert", expiryDate));
+                response.put("message", "A fost dat mute");
+            }
+        }
     }
 }

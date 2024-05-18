@@ -12,7 +12,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * Clasa Lobby reprezinta un lobby creat de un utilizator.<br>
  * Un lobby contine un id, numele liderului, numele lobby-ului si lista de jucatori din lobby.
- * @author Radu
  */
 @Builder
 @Document(collection = "lobbies")

@@ -13,7 +13,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * numele lobby-ului echipei atacatoare, numele liderului echipei aparatoare,
  * numele lobby-ului echipei aparatoare, rezultatul jocului, scorul,
  * data la care s-a jucat si statistici despre jucatori.
- * @author Radu
  */
 @Data
 @Builder

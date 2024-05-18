@@ -2,6 +2,7 @@ package com.example.proiectpao.service.PunishService;
 
 import com.example.proiectpao.dtos.PunishDTO;
 import com.example.proiectpao.dtos.userDTOs.AssignRoleDTO;
+import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
@@ -64,4 +65,10 @@ public interface IPunishService {
      */
     @Async
     CompletableFuture<?> unmute(String user, String admin);
+
+    @Async
+    CompletableFuture<?> revertAction(String user, String admin);
+
+    @Async
+    CompletableFuture<?> revertAction(String user, String admin, Date expiryDate);
 }

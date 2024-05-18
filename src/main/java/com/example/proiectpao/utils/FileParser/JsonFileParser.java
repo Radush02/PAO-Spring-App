@@ -12,14 +12,13 @@ import com.example.proiectpao.repository.UserRepository;
 import com.example.proiectpao.service.S3Service.S3Service;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.web.multipart.MultipartFile;
 
 public class JsonFileParser extends FileParser {
 
@@ -55,7 +54,7 @@ public class JsonFileParser extends FileParser {
     @Override
     public String write(Object userJson, S3Service s3) throws IOException {
         String fileName = generateFileName();
-        File tempFile = createTempFile(userJson,".json");
+        File tempFile = createTempFile(userJson, ".json");
 
         try (FileInputStream input = new FileInputStream(tempFile)) {
             MultipartFile multipartFile = createMultipartFile(tempFile, input);
@@ -67,8 +66,6 @@ public class JsonFileParser extends FileParser {
         return fileName;
     }
 
-
-
     private void parseAndSaveData(String json, Object user, Object type) {
         if (type instanceof UserRepository) {
             saveUserData(json, user, (UserRepository) type);
@@ -76,7 +73,6 @@ public class JsonFileParser extends FileParser {
             saveChatData(json, (ChatRepository) type);
         }
     }
-
 
     private void saveUserData(String json, Object user, UserRepository userRepository) {
         ExportDTO exportDTO = new Gson().fromJson(json, ExportDTO.class);
@@ -107,8 +103,4 @@ public class JsonFileParser extends FileParser {
         List<Chat> chats = new Gson().fromJson(json, listType);
         chatRepository.saveAll(chats);
     }
-
-
-
-
 }

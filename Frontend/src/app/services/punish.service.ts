@@ -31,5 +31,8 @@ export class PunishService {
     assignRole(info:any): Observable<any> {
         return this.http.post<any>(`${this.apiKey}/assignRole`,info);
     }
+    revertAction(info:any): Observable<any> {
+        return this.http.post<any>(`${this.apiKey}/revert`,info);
+    }
 }
 

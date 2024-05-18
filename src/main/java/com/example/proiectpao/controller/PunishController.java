@@ -1,6 +1,7 @@
 package com.example.proiectpao.controller;
 
 import com.example.proiectpao.dtos.PunishDTO;
+import com.example.proiectpao.dtos.RevertDTO;
 import com.example.proiectpao.dtos.UnpunishDTO;
 import com.example.proiectpao.dtos.userDTOs.AssignRoleDTO;
 import com.example.proiectpao.exceptions.NonExistentException;
@@ -137,6 +138,25 @@ public class PunishController {
         try {
             CompletableFuture<?> logs = punishService.unmute(u.getUser(), u.getAdmin());
             return new ResponseEntity<>(logs.get(), HttpStatus.OK);
+        } catch (NonExistentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/revert")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> revert(@RequestBody RevertDTO dto) {
+        try {
+            if (dto.getExpiryDate() == null) {
+                CompletableFuture<?> user =
+                        punishService.revertAction(dto.getUser(), dto.getAdmin());
+                return new ResponseEntity<>(user.get(), HttpStatus.OK);
+            }
+            CompletableFuture<?> user =
+                    punishService.revertAction(dto.getUser(), dto.getAdmin(), dto.getExpiryDate());
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
         } catch (NonExistentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
